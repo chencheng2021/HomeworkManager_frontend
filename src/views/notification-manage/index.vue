@@ -1,10 +1,27 @@
 <template>
   <div style="width: 100%;height: auto;display: block;" >
     <div style="width: 100%;height: 100px;margin-bottom: 20px;display: flex;background: #ffffff">
-
+      <div style="width: 20%;margin-left: 20px;text-align: center; ">
+        <div style="height: 60px;line-height: 60px;font-size: 20px;font-weight: bold">通知总数</div>
+        <div style="height: 40px;line-height: 20px;font-size: 20px">{{notification_meta_data.length}}(条)</div>
+      </div>
+      <div style="width: 80%;line-height: 100px">
+        <div style="float: right">
+          <el-button type="success" style="width: 140px;height: 50px;margin-right: 40px" icon="el-icon-message-solid">发布通知</el-button>
+        </div>
+      </div>
     </div>
-    <div style="width: 100%;height: 50px;margin-bottom: 20px;display: flex;background: #ffffff">
-
+    <div style="width: 100%;height: 50px;margin-bottom: 20px;display: flex;">
+      <div style="width: 200px;height: 50px;line-height: 50px">
+        <el-select v-model="curr_nt_type" >
+          <el-option
+            v-for="item in nt_type_selection"
+            :key="item.val"
+            :label="item.label"
+            :value="item.val">
+          </el-option>
+        </el-select>
+      </div>
     </div>
     <div>
       <el-table :data="notification_meta_data" stripe  >
@@ -89,6 +106,13 @@ export default {
       // 当前通知成员的数据集
       curr_members_info: [],
       table_loading: true,
+      nt_type_selection: [
+        {label: '所有类型', val: -1},
+        {label: '文本通知', val: 0 },
+        {label: '附件通知', val: 1 },
+        {label: '短信通知', val: 2 },
+      ],
+      curr_nt_type: -1
     }
   },
   methods: {
