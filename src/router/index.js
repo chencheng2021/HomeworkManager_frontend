@@ -77,7 +77,7 @@ const system_router = [
                 path: 'list',
                 name: 'notification_list',
                 meta: {title: '通知管理', icon: 'el-icon-bell'},
-                component: () => import('@/views/template')
+                component: () => import('@/views/notification-manage')
             }
         ]
     },

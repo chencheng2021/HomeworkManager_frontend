@@ -64,7 +64,7 @@
 
 <script>
 export default {
-name: "index",
+name: "login",
   data(){
 
     return{

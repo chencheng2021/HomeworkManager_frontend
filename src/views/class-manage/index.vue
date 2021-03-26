@@ -38,7 +38,7 @@
             @cancel-submit="close_drawer"></class-edit-drawer>
       </div>
     </el-drawer>
-    <el-dialog :title="dialog_title" :visible.sync="info_dialog_open_flag" width="800px"
+    <el-dialog :title="dialog_title" :visible.sync="info_dialog_open_flag" width="800px" center
                :before-close="() => {this.checkout_to_student_info();this.info_dialog_open_flag = false}">
       <el-table :data="class_members_data" height="500" v-if="show_student_info">
         <el-table-column property="student_no" label="学号"></el-table-column>
@@ -59,7 +59,7 @@
         <el-button plain @click="checkout_to_student_info">查看学生信息</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="导入学生信息" :visible.sync="import_dialog_open_flag" width="800px"
+    <el-dialog title="导入学生信息" :visible.sync="import_dialog_open_flag" width="800px" center
                :before-close="handle_import_dialog_close"
                :close-on-click-modal="false">
       <el-table :data="student_import_data" height="500">
@@ -84,17 +84,8 @@
         </el-upload>
       </div>
     </el-dialog>
-    <el-dialog title="班级文件" :visible.sync="class_files_dialog_open_flag" width="500px">
-      <div style="margin-bottom: 20px;cursor: pointer">
-        <el-card shadow="hover" style="align-content: center">
-          <i class="el-icon-paperclip"></i>
-          <label>康师傅看黑客技术.docx</label>
-          <div style="float: right;">
-            <el-button type="success" icon="el-icon-download" circle
-                       size="mini" @click="jump_out('https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fb.zol-img.com.cn%2Fdesk%2Fbizhi%2Fimage%2F1%2F1680x1050%2F1349289433496.jpg&refer=http%3A%2F%2Fb.zol-img.com.cn&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1619132551&t=ad1556c16cb2e720779cf0474f1482fe')"></el-button>
-          </div>
-        </el-card>
-      </div>
+    <el-dialog title="班级文件" :visible.sync="class_files_dialog_open_flag" width="500px" center>
+      <file-card :file_data_list="attachment_data"></file-card>
     </el-dialog>
   </div>
 </template>
@@ -102,16 +93,23 @@
 <script>
 import ClassInfoItem from "@/components/class-info-item";
 import ClassEditDrawer from "@/components/class-edit-drawer";
-import {mock_class_info_data, mock_parent_contact_data, mock_student_contact_data} from "@/utils/data_mock_util";
+import {
+  mock_attachment_data,
+  mock_class_info_data,
+  mock_parent_contact_data,
+  mock_student_contact_data
+} from "@/utils/data_mock_util";
 import {import_file} from "@/vendor/file_json_reader";
+import FileCard from "@/components/file-card";
 export default {
-  name: "index",
-  components: {ClassEditDrawer, ClassInfoItem},
+  name: "class-manage",
+  components: {FileCard, ClassEditDrawer, ClassInfoItem},
   data(){
     return{
       class_meta_data: mock_class_info_data(),
       class_members_data:mock_student_contact_data(),
       student_parent_info: mock_parent_contact_data(mock_student_contact_data()),
+      attachment_data: mock_attachment_data(),
       dialog_title: '班级学生信息',
       show_student_info: true,
       drawer_open_flag: false,
@@ -205,9 +203,6 @@ export default {
       this.show_student_info = false
       this.dialog_title = '班级学生家长信息'
     },
-    jump_out(link){
-      window.open(link)
-    }
   }
 }
 </script>
@@ -244,6 +239,16 @@ export default {
 
 /deep/.el-input{
   width: 90%;
+}
+
+/*使表头标题居中*/
+/deep/.el-table th{
+  text-align: center;
+}
+
+/*使表格内容居中*/
+/deep/.el-table td{
+  text-align: center;
 }
 
 </style>

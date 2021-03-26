@@ -15,7 +15,7 @@
             <div class="course-info-item_full">
               <div class="course-info-item-operator">
                 <el-button type="text" icon="el-icon-document-checked"
-                           @click="on_contact_click(item)"
+                           @click="course_election_btn_handler(item)"
                            style="font-size: 13px">选课信息</el-button>
               </div>
               <div class="course-info-item-operator">
@@ -24,7 +24,7 @@
               </div>
               <div class="course-info-item-operator">
                 <el-button type="text"  icon="el-icon-paperclip" style="font-size: 13px"
-                           @click="class_files_list_handler(item)">课程文件</el-button>
+                           @click="course_files_list_handler(item)">课程文件</el-button>
               </div>
               <div class="course-info-item-operator" style="width: auto">
                 <el-dropdown trigger="click">
@@ -34,10 +34,10 @@
               </span>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item>
-                      <el-button type="text" @click="members_import_btn_handler">发布作业</el-button>
+                      <el-button type="text" @click="homework_publish_handler">发布作业</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-button type="text">发布文件</el-button>
+                      <el-button type="text" @click="file_publish_handler">发布文件</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button type="text" @click="check_before_delete(item)">删除课程</el-button>
@@ -91,31 +91,37 @@ export default {
     delete_btn_handler:{
       type: Function,
       default: () => {
-        console.error('dismiss handler is not defined!')
+        alert('delete handler is not defined!')
       }
     },
     edit_btn_handler:{
       type: Function,
       default: () => {
-        console.error('edit handler is not defined!')
+        alert('edit handler is not defined!')
       }
     },
-    course_table_btn_handler:{
+    course_election_btn_handler:{
       type: Function,
       default: () => {
-        console.error('contact handler is not defined!')
+        alert('course election handler is not defined!')
       }
     },
-    members_import_btn_handler:{
+    course_files_list_handler:{
       type: Function,
       default: () => {
-        console.error('members import handler is not defined!')
+        alert('files list handler is not defined!')
       }
     },
-    class_files_list_handler:{
+    homework_publish_handler:{
       type: Function,
       default: () => {
-        console.error('files list handler is not defined!')
+        alert('homework publish handler is not defined!')
+      }
+    },
+    file_publish_handler:{
+      type: Function,
+      default: () => {
+        alert('file publish handler is not defined!')
       }
     }
   },
@@ -126,19 +132,11 @@ export default {
   },
   methods:{
     check_before_delete(item){
-      if (item.total_student_num > 0){
-        this.$message.warning('已导入学生的班级目前不支持删除!')
-      }else {
-        this.delete_btn_handler(item)
-      }
+      // TODO 通过item的id获取在本地缓存中获取该课程的学生选课数据，根据数据判断，如果课程已被选课，不能删除
+      console.log(item)
     },
     on_contact_click(item){
-      if (item.total_student_num === 0){
-        this.$message.info('该班级暂无学生加入，没有成员数据')
-      }else {
-        // 交由父组件去进行处理
-        this.course_table_btn_handler(item)
-      }
+      console.log(item)
     },
   }
 }

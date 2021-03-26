@@ -36,3 +36,17 @@ export function get_string_checker(message){
         trigger: 'blur'
     }
 }
+
+export function get_default_number_checker(){
+    return [
+        {
+            required: true,
+            message: '数值不能为空',
+            trigger: ''
+        },
+        {
+            type: 'number',
+            message: '请输入数字值'
+        }
+    ]
+}

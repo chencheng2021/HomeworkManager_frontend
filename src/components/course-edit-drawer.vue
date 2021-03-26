@@ -1,17 +1,20 @@
 <template>
   <div style="padding-top: 50px">
     <div style="margin-bottom: 100px">
-      <el-form :model="class_data_form" ref="class_data_form"
-               :rules="class_form_rules" status-icon label-width="120px"
+      <el-form :model="course_data_form" ref="course_data_form"
+               :rules="course_form_rules" status-icon label-width="120px"
                label-position="right">
-        <el-form-item label="班级名称" prop="name" >
-          <el-input v-model="class_data_form.name" placeholder="请输入班级名称"></el-input>
+        <el-form-item label="课程名称" prop="name" >
+          <el-input v-model="course_data_form.name" placeholder="请输入课程名称"></el-input>
         </el-form-item>
-        <el-form-item label="班级编号" prop="class_code">
-          <el-input v-model="class_data_form.class_code" placeholder="请输入班级编号"></el-input>
+        <el-form-item label="上课时间" prop="class_time">
+          <el-input v-model="course_data_form.class_time" placeholder="请输入课程上课时间"></el-input>
         </el-form-item>
-        <el-form-item label="班主任">
-          <el-input value="Vinfer" disabled></el-input>
+        <el-form-item label="课程学分" prop="credit" >
+          <el-input v-model="course_data_form.credit"  placeholder="请输入课程学分（数值）"></el-input>
+        </el-form-item>
+        <el-form-item label="课程周期(周)" prop="course_period">
+          <el-input v-model="course_data_form.course_period"  placeholder="请输入课程上课周期（数值）"></el-input>
         </el-form-item>
       </el-form>
     </div>
@@ -25,9 +28,8 @@
 
 <script>
 import {
-  get_default_name_checker,
+  get_default_name_checker, get_default_number_checker,
   get_max_length_checker,
-  get_min_length_checker,
   get_string_checker
 } from "@/utils/checker_util";
 
@@ -37,46 +39,50 @@ export default {
     form_submit_handler:{
       type: Function,
       default: () => {
-        console.error('form submit handler is not defined!')
+        alert('form submit handler is not defined!')
       }
     }
   },
   data(){
     return{
-      class_data_form:{
+      course_data_form:{
         id: 0,
         name: '',
-        class_code: '',
-        header_teacher_no: ''
+        credit: 0,
+        class_time: '',
+        course_period: 10
       },
-      class_form_rules:{
-        name:[
+      course_form_rules:{
+        name: [
           get_default_name_checker(),
           get_max_length_checker(16)
         ],
-        class_code: [
-            get_string_checker('班级编号不能为空'),
-            get_min_length_checker(4),
-            get_max_length_checker(16)
-        ]
+        credit: get_default_number_checker(),
+        class_time: [
+            get_string_checker('上课时间不能为空'),
+            get_max_length_checker('32'),
+        ],
+        course_period: get_default_number_checker(),
       },
       is_create_mode: true
     }
   },
   methods:{
     reset_form(){
-      this.class_data_form.class_code = ''
-      this.class_data_form.name = ''
+      this.course_data_form.name = ''
+      this.course_data_form.class_time = ''
+      this.course_data_form.course_period = 0
+      this.course_data_form.credit = 0.0
       // 向父组件提交关闭drawer的事件
       this.$emit('cancel-submit')
     },
     check_before_submit(){
       // 每次提交表单前都需要将mode修改为创建模式
-      this.$refs['class_data_form'].validate(valid => {
+      this.$refs['course_data_form'].validate(valid => {
         if (valid){
           // 当前表单需要先在当前组件进行数据校验才可以提交给父组件进行最终的提交操作
           // 父组件无法对表单数据进行校验，因为该校验需要使用this来获取form对象
-          this.form_submit_handler(this.class_data_form,this.is_create_mode)
+          this.form_submit_handler(this.course_data_form,this.is_create_mode)
           // 每次提交完表单后都必须将mode重置
           this.is_create_mode = true
         }else {
@@ -85,7 +91,7 @@ export default {
       })
     },
     do_form_checking(){
-      this.$refs['class_data_form'].validate(valid => {
+      this.$refs['course_data_form'].validate(valid => {
         if (!valid){
           return false
         }
@@ -93,9 +99,11 @@ export default {
     },
     on_edit_call(data){
       // 监听父组件的调用
-      this.class_data_form.name = data.name
-      this.class_data_form.id = data.id
-      this.class_data_form.class_code = data.class_code
+      this.course_data_form.name = data.name
+      this.course_data_form.id = data.id
+      this.course_data_form.class_time = data.class_time
+      this.course_data_form.credit = data.credit
+      this.course_data_form.course_period = data.course_period
       // 此时是对数据进行修改，因此需要修改is_create_mode
       this.is_create_mode = false
     },
