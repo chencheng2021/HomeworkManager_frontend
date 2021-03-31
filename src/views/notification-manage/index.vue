@@ -35,7 +35,7 @@
           </el-select>
         </div>
         <div style="margin-right: 5px;width: 250px">
-          <el-input placeholder="请输入搜索关键字" v-model="search_key" ></el-input>
+          <el-input placeholder="请输入搜索关键字" v-model="search_key" style="width: 100%!important;"></el-input>
         </div>
         <div>
           <el-button plain icon="el-icon-search" @click="handle_data_filter"></el-button>
@@ -111,6 +111,8 @@
     <el-drawer title="发布新通知" size="500px"
                style="font-size: 20px"
                @close="handle_drawer_close"
+               :close-on-press-escape="false"
+               :close-on-click-modal="false"
                :visible.sync="create_drawer_open_flag" >
       <el-divider></el-divider>
       <el-form :model="notification_form" ref="notification_form"
@@ -120,7 +122,10 @@
           <el-input v-model="notification_form.title" placeholder="请输入通知标题"></el-input>
         </el-form-item>
         <el-form-item label="通知内容" prop="content">
-          <el-input v-model="notification_form.content" placeholder="请输入通知内容"></el-input>
+          <el-input v-model="notification_form.content" placeholder="请输入通知内容"
+                    type="textarea"  show-word-limit
+                    style="width: 95%!important;"
+                    :maxlength="content_max_len"></el-input>
         </el-form-item>
         <el-form-item label="通知类型" prop="type">
           <el-select v-model="notification_form.type" @change="handle_selector_change">
@@ -158,19 +163,13 @@
     <el-dialog title="可通知学生列表" :visible.sync="nt_obj_dialog_open_flag"
                :close-on-press-escape="false"
                :show-close="false" :close-on-click-modal="false">
-      <el-table :data="student_table_render_data" stripe height="500"
-                ref="selection_table"
-                @selection-change="handle_nt_obj_selection">
-        <!-- 开启表格的selection模式，提供多选操作 -->
-        <el-table-column type="selection" width="45"></el-table-column>
-        <el-table-column property="student_no" label="学号" width="200px"></el-table-column>
-        <el-table-column property="name" label="姓名" width="150px"></el-table-column>
-        <el-table-column property="gender" label="性别" width="50px"></el-table-column>
-        <el-table-column property="class_name" label="班级"></el-table-column>
-        <el-table-column property="contact" label="联系方式"></el-table-column>
-      </el-table>
+      <member-table
+          ref="selection_table"
+          :selection_mode="true" :table_render_data="student_table_render_data"
+          :selection_change_handler="handle_nt_obj_selection"
+          table_height="500" :enable_operate="false" :show_full_info="false" :use_index="false"></member-table>
       <div style="margin-top: 30px;text-align: center">
-        <el-button type="success" style="width: 120px" round @click="complete_form_data">确认</el-button>
+        <el-button type="success" style="width: 120px" round @click="cache_nt_obj_id">确认</el-button>
         <el-button type="cancel" style="width: 120px" round @click="() => {this.nt_obj_dialog_open_flag = false}">取消</el-button>
       </div>
 
@@ -192,10 +191,11 @@ import CommonPagination from "@/components/pagination";
 import {get_max_length_checker, get_string_checker} from "@/utils/checker_util";
 import {deeply_copy_obj, form_check, form_clear} from "@/provider/common_provider";
 import {filter_by_content, filter_by_title} from "@/provider/data_filter_delegator";
+import MemberTable from "@/components/member-table";
 
 export default {
   name: "notification-manage",
-  components: { CommonPagination, FileCard},
+  components: {MemberTable, CommonPagination, FileCard},
   data(){
     return {
       notification_meta_data: mock_notification_data(),
@@ -214,6 +214,8 @@ export default {
         {label: '附件通知', val: 1 },
         {label: '短信通知', val: 2 },
       ],
+      // 通知内容最大长度；文本和附件通知为256，短信通知为：60
+      content_max_len: 256,
       curr_nt_type: -1,
       create_drawer_open_flag: false,
       notification_form:{
@@ -324,6 +326,12 @@ export default {
       this.create_drawer_open_flag = false
     },
     handle_selector_change(val){
+      // 如果切换为短信通知时，需要变更内容最大长度
+      if (this.notification_form.type === 2){
+        this.content_max_len = 60
+      }else {
+        this.content_max_len = 256
+      }
       let msg = this.nt_type_selection.find( obj => {
         if (obj.val === val){
           return obj
@@ -334,7 +342,7 @@ export default {
     handle_form_submit(){
       if (form_check(this,'notification_form')){
         // 检查通知对象的设置
-        if (this.nt_obj_type !== ''){
+        if (this.notification_form.member_type !== ''){
           if (this.temp_selected_pid.length !== 0){
             // 将保存发布对象id的中间数组中的值copy到表单的pidList中
             // 每次为pidList增加值时，需要先重置
@@ -370,14 +378,14 @@ export default {
       this.nt_obj_dialog_open_flag = true
     },
     handle_dialog_close(){
-      // 清除表格中已选数据的记录
-      this.$refs.selection_table.clearSelection()
+      // 调用子组件的方法，清除表格中已选数据的记录
+      this.$refs.selection_table.clear_selection()
       this.nt_obj_dialog_open_flag = false
     },
     handle_nt_obj_selection(val){
       this.nt_obj_list = val
     },
-    complete_form_data(){
+    cache_nt_obj_id(){
       this.nt_obj_list.forEach( item => {
         let id = item.id
         if (typeof id === 'undefined'){
@@ -410,6 +418,10 @@ export default {
   height: 150px;
   text-align: center;
   line-height: 150px;
+}
+
+/deep/.el-input{
+  width: 95%!important;
 }
 
 </style>

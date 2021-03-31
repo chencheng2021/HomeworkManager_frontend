@@ -23,3 +23,33 @@ export function filter_by_content(origin,condition){
     } )
     return collect
 }
+
+export function filter_by_student_no(origin,condition){
+    let collect = []
+    origin.filter( item => {
+        if (item.student_no.indexOf(condition) !== -1){
+            collect.push(item)
+        }
+    } )
+    return collect
+}
+
+export function filter_by_name(origin,condition){
+    let collect = []
+    origin.filter( item => {
+        if (item.name.indexOf(condition) !== -1){
+            collect.push(item)
+        }
+    } )
+    return collect
+}
+
+export function filter_by_class(origin,condition){
+    let collect = []
+    origin.filter( item => {
+        if (item.class_name.indexOf(condition) !== -1){
+            collect.push(item)
+        }
+    } )
+    return collect
+}

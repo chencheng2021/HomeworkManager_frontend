@@ -12,7 +12,7 @@ export function mock_class_info_data(size){
     }
     for (let i = 0; i < size; i++) {
         let item = {
-            id: i,
+            id  : i,
             name: '计算机科学与技术' + (i+1) + '班',
             class_code:'CS-103' + i,
             total_student_num: (size - i) * i + (4*i),
