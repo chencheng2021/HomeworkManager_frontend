@@ -36,6 +36,7 @@ export function mock_student_contact_data(size){
             contact: '183029401132',
             email: 'contact@qq.com',
             social_account: '903272721',
+            class_name: '网络工程'+(i+1)+'班'
         }
         mock_data.push(item)
     }
@@ -44,10 +45,12 @@ export function mock_student_contact_data(size){
 
 export function mock_parent_contact_data(student_data){
     let mock_data = []
+    let counter = 1
     student_data.forEach(student => {
         let s_name = student.name;
         if (student.gender === '男'){
             let father = {
+                id: counter++,
                 student_name: s_name,
                 name: '张益达',
                 relation: '父亲',
@@ -56,6 +59,7 @@ export function mock_parent_contact_data(student_data){
             mock_data.push(father)
         }
         let mother = {
+            id: counter++,
             student_name: s_name,
             name: '张益达',
             relation: '母亲',

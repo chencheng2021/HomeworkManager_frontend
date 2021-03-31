@@ -92,7 +92,7 @@ const system_router = [
                 path: 'list',
                 name: 'members_list',
                 meta: {title: '成员管理', icon: 'el-icon-user-solid'},
-                component: () => import('@/views/template')
+                component: () => import('@/views/member-manage')
             }
         ]
     },

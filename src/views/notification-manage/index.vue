@@ -138,6 +138,16 @@
           <el-radio v-model="confirm_radio" label="no" border>无需确认</el-radio>
           <el-radio v-model="confirm_radio" label="yes" border>需要确认</el-radio>
         </el-form-item>
+        <el-form-item label="通知对象" prop="member_type">
+          <el-select v-model="notification_form.member_type" @change="handle_obj_type_change">
+            <el-option
+                v-for="item in nt_obj_type_selection"
+                :key="item.val"
+                :label="item.label"
+                :value="item.val">
+            </el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <el-divider></el-divider>
       <div class="nt-form-submit-btn_wrapper">
@@ -145,20 +155,47 @@
         <el-button type="info" style="width: 120px" plain @click="handle_drawer_close">取消</el-button>
       </div>
     </el-drawer>
+    <el-dialog title="可通知学生列表" :visible.sync="nt_obj_dialog_open_flag"
+               :close-on-press-escape="false"
+               :show-close="false" :close-on-click-modal="false">
+      <el-table :data="student_table_render_data" stripe height="500"
+                ref="selection_table"
+                @selection-change="handle_nt_obj_selection">
+        <!-- 开启表格的selection模式，提供多选操作 -->
+        <el-table-column type="selection" width="45"></el-table-column>
+        <el-table-column property="student_no" label="学号" width="200px"></el-table-column>
+        <el-table-column property="name" label="姓名" width="150px"></el-table-column>
+        <el-table-column property="gender" label="性别" width="50px"></el-table-column>
+        <el-table-column property="class_name" label="班级"></el-table-column>
+        <el-table-column property="contact" label="联系方式"></el-table-column>
+      </el-table>
+      <div style="margin-top: 30px;text-align: center">
+        <el-button type="success" style="width: 120px" round @click="complete_form_data">确认</el-button>
+        <el-button type="cancel" style="width: 120px" round @click="() => {this.nt_obj_dialog_open_flag = false}">取消</el-button>
+      </div>
+
+<!--      TODO  附件类型的通知可以选择用户自己的文件或上传-->
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {mock_notification_data, mock_nt_members_info} from "@/utils/data_mock_util";
+import {
+  mock_class_info_data,
+  mock_notification_data,
+  mock_nt_members_info,
+  mock_parent_contact_data,
+  mock_student_contact_data
+} from "@/utils/data_mock_util";
 import FileCard from "@/components/file-card";
 import CommonPagination from "@/components/pagination";
 import {get_max_length_checker, get_string_checker} from "@/utils/checker_util";
 import {deeply_copy_obj, form_check, form_clear} from "@/provider/common_provider";
-import {filter_by} from "@/provider/data_filter_delegator";
+import {filter_by_content, filter_by_title} from "@/provider/data_filter_delegator";
 
 export default {
   name: "notification-manage",
-  components: {CommonPagination, FileCard},
+  components: { CommonPagination, FileCard},
   data(){
     return {
       notification_meta_data: mock_notification_data(),
@@ -186,7 +223,11 @@ export default {
         type: 0,
         confirmable: false,
         // 发布对象的id集合，发布对象可以是班级，学生或家长
-        pidList: []
+        pidList: [],
+        member_type: '',
+        // 如果是附件通知，还可以上传附件，如果选择了附件通知但是没有上传附件，
+        // 那么系统会自动将通知类型修改为文本通知
+        attachment:[]
       },
       notification_form_rules:{
         title: [
@@ -206,7 +247,22 @@ export default {
       search_selection: [
         {label: '搜索标题', val: 'title'},
         {label: '搜索内容', val: 'content'}
-      ]
+      ],
+      // 通知对象的类型，通知的对象可以是班级、学生或家长
+      nt_obj_type_selection:[
+        {label: '班级通知', val: 'class'},
+        {label: '学生通知', val: 'student'},
+        {label: '家长通知', val: 'parent'}
+      ],
+      class_table_render_data:mock_class_info_data(3),
+      student_table_render_data: mock_student_contact_data(56),
+      parent_table_render_data: mock_parent_contact_data(mock_student_contact_data(56)),
+      nt_obj_dialog_open_flag: false,
+      // 在表格多选界面中选择的通知对象信息
+      nt_obj_list: [],
+      // 在表格进行多选时，点击确认按钮后，数据会保存到该中间数组中
+      // 当用户最终确定发布通知时，该中间数组的数据才会被复制到notification_form.pidList中
+      temp_selected_pid: []
     }
   },
   methods: {
@@ -277,15 +333,60 @@ export default {
     },
     handle_form_submit(){
       if (form_check(this,'notification_form')){
-        let data = deeply_copy_obj(this.notification_form)
-        console.log(data)
-        this.create_drawer_open_flag  = false
-        this.$message.success('已成功发布通知')
+        // 检查通知对象的设置
+        if (this.nt_obj_type !== ''){
+          if (this.temp_selected_pid.length !== 0){
+            // 将保存发布对象id的中间数组中的值copy到表单的pidList中
+            // 每次为pidList增加值时，需要先重置
+            this.notification_form.pidList = []
+            this.temp_selected_pid.forEach( id => {
+              this.notification_form.pidList.push(id)
+            })
+            let data = deeply_copy_obj(this.notification_form)
+            console.log(data)
+            this.create_drawer_open_flag  = false
+            this.$message.success('已成功发布通知')
+          }else {
+            this.$message.warning('请选择至少一个通知对象！')
+          }
+        }else {
+          this.$message.warning('请选择通知对象类型！')
+        }
       }
     },
     handle_data_filter(){
-      this.$message.info('search')
-      this.notification_tb_render_data = filter_by(this.notification_meta_data,'title',this.search_key)
+      if (this.search_type === 'title'){
+        this.notification_tb_render_data = filter_by_title(this.notification_meta_data,this.search_key)
+      }else if (this.search_type === 'content'){
+        this.notification_tb_render_data = filter_by_content(this.notification_meta_data,this.search_key)
+      }
+    },
+    handle_obj_type_change(){
+      this.handle_dialog_open()
+    },
+    handle_dialog_open(){
+      // 每次打开都需要先清除该中间数组的缓存值，防止多选累加
+      this.temp_selected_pid = []
+      this.nt_obj_dialog_open_flag = true
+    },
+    handle_dialog_close(){
+      // 清除表格中已选数据的记录
+      this.$refs.selection_table.clearSelection()
+      this.nt_obj_dialog_open_flag = false
+    },
+    handle_nt_obj_selection(val){
+      this.nt_obj_list = val
+    },
+    complete_form_data(){
+      this.nt_obj_list.forEach( item => {
+        let id = item.id
+        if (typeof id === 'undefined'){
+          // 学生的id字段名是student_no
+          id = item.student_no
+        }
+        this.temp_selected_pid.push(id)
+      })
+      this.handle_dialog_close()
     }
   }
 }
