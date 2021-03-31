@@ -25,16 +25,16 @@
         :edit_btn_handler="handle_course_info_edit">
     </course-info-item>
     <el-drawer title="创建班级" size="500px"
-               @close="clear_form"
+               style="font-size: 20px"
+               @close="close_drawer"
                :visible.sync="drawer_open_flag"
                :close-on-press-escape="false"
                :wrapper-closable="false">
       <el-divider></el-divider>
       <div class="course-manage_drawer-body">
         <course-edit-drawer
-            ref="class_edit_drawer"
-            :form_submit_handler="handle_form_submit"
-            @cancel-submit="close_drawer"></course-edit-drawer>
+            ref="course_edit_drawer"
+            :form_submit_handler="handle_form_submit"></course-edit-drawer>
       </div>
     </el-drawer>
     <el-dialog title="学生选课信息" :visible.sync="info_dialog_open_flag" width="800px" center>
@@ -82,7 +82,7 @@ export default {
       // 传递数据给子组件进行修改
       setTimeout(() => {
         // 这里必须要进行超时调用，因为需要子组件先实例化
-        this.$refs.class_edit_drawer.on_edit_call(origin)
+        this.$refs.course_edit_drawer.on_edit_call(origin)
       },10)
     },
     create_course(){
@@ -92,11 +92,8 @@ export default {
       if (is_create_mode){
         alert('创建')
       }else {
-        if (this.$refs.class_edit_drawer.do_form_checking()){
-          alert('哈哈哈哈')
-        }else {
-          alert('sss')
-        }
+        this.$refs.course_edit_drawer.do_form_checking()
+        // 当表单通过检查时才可以继续执行下面的逻辑，因此不需要获取检查的返回值，获取不到
         alert('修改')
       }
       alert(form_data.name)
@@ -110,6 +107,7 @@ export default {
       this.info_dialog_open_flag = true
     },
     close_drawer(){
+      this.clear_form()
       this.drawer_open_flag = false
     },
     handle_course_file_list(item){
@@ -117,7 +115,7 @@ export default {
       this.course_files_dialog_open_flag = true
     },
     clear_form(){
-      this.$refs.class_edit_drawer.reset_form()
+      this.$refs.course_edit_drawer.reset_form()
     },
   }
 }

@@ -32,6 +32,7 @@ import {
   get_min_length_checker,
   get_string_checker
 } from "@/utils/checker_util";
+import {form_clear} from "@/provider/common_provider";
 
 export default {
   name: "class-edit-drawer",
@@ -67,10 +68,7 @@ export default {
   },
   methods:{
     reset_form(){
-      this.class_data_form.class_code = ''
-      this.class_data_form.name = ''
-      // 向父组件提交关闭drawer的事件
-      this.$emit('cancel-submit')
+      form_clear(this,'class_data_form')
     },
     check_before_submit(){
       // 每次提交表单前都需要将mode修改为创建模式
@@ -88,9 +86,7 @@ export default {
     },
     do_form_checking(){
       this.$refs['class_data_form'].validate(valid => {
-        if (!valid){
-          return false
-        }
+        return valid
       })
     },
     on_edit_call(data){

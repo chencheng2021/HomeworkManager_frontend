@@ -11,7 +11,8 @@
           <el-input v-model="course_data_form.class_time" placeholder="请输入课程上课时间"></el-input>
         </el-form-item>
         <el-form-item label="课程学分" prop="credit" >
-          <el-input v-model="course_data_form.credit"  placeholder="请输入课程学分（数值）"></el-input>
+          <!--使用数值校验时，需要使用v-model.number来进行绑定-->
+          <el-input v-model.number="course_data_form.credit"  placeholder="请输入课程学分（数值）"></el-input>
         </el-form-item>
         <el-form-item label="课程周期(周)" prop="course_period">
           <el-input v-model="course_data_form.course_period"  placeholder="请输入课程上课周期（数值）"></el-input>
@@ -32,6 +33,7 @@ import {
   get_max_length_checker,
   get_string_checker
 } from "@/utils/checker_util";
+import {form_clear} from "@/provider/common_provider";
 
 export default {
   name: "course-edit-drawer",
@@ -69,12 +71,7 @@ export default {
   },
   methods:{
     reset_form(){
-      this.course_data_form.name = ''
-      this.course_data_form.class_time = ''
-      this.course_data_form.course_period = 0
-      this.course_data_form.credit = 0.0
-      // 向父组件提交关闭drawer的事件
-      this.$emit('cancel-submit')
+      form_clear(this,'course_data_form')
     },
     check_before_submit(){
       // 每次提交表单前都需要将mode修改为创建模式
@@ -92,9 +89,7 @@ export default {
     },
     do_form_checking(){
       this.$refs['course_data_form'].validate(valid => {
-        if (!valid){
-          return false
-        }
+        return valid;
       })
     },
     on_edit_call(data){

@@ -26,7 +26,8 @@
         :edit_btn_handler="handle_class_info_edit">
     </class-info-item>
     <el-drawer title="创建班级" size="500px"
-               @close="clear_form"
+               style="font-size: 20px"
+               @close="close_drawer"
                :visible.sync="drawer_open_flag"
                :close-on-press-escape="false"
                :wrapper-closable="false">
@@ -34,8 +35,7 @@
       <div class="class-manage_drawer-body">
         <class-edit-drawer
             ref="class_edit_drawer"
-            :form_submit_handler="handle_form_submit"
-            @cancel-submit="close_drawer"></class-edit-drawer>
+            :form_submit_handler="handle_form_submit"></class-edit-drawer>
       </div>
     </el-drawer>
     <el-dialog :title="dialog_title" :visible.sync="info_dialog_open_flag" width="800px" center
@@ -71,11 +71,11 @@
         <el-table-column property="social_account" label="QQ号"></el-table-column>
       </el-table>
       <div style="margin-top: 20px;width: 100%;text-align: center;display: flex;justify-content: center">
-        <el-upload action="" :on-exceed="() => {this.$message.warning('单次只能上传一个文件')}"
+        <el-upload action="http://192.168.137.127:9090/test/upload" :on-exceed="() => {this.$message.warning('单次只能上传一个文件')}"
                    :on-change="handle_change_when_importing"
                    :on-remove="handle_remove_when_importing" :file-list="file_list_upload"
-                   :auto-upload="false"
-                   :limit="1"
+                   :auto-upload="true"
+                   :limit="1" name="file"
                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
           <el-button slot="trigger" type="primary"  round style="margin-right: 20px">选择文件</el-button>
           <el-popconfirm title="确定将以上学生都注册到班级中吗？" @confirm="handle_confirm_student_import">
@@ -179,6 +179,7 @@ export default {
       this.handle_import_dialog_close()
     },
     close_drawer(){
+      this.clear_form()
       this.drawer_open_flag = false
     },
     handle_import_dialog_close(){
