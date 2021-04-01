@@ -107,7 +107,7 @@ const system_router = [
                 path: 'list',
                 name: 'files_list',
                 meta: {title: '文件管理', icon: 'el-icon-collection'},
-                component: () => import('@/views/template')
+                component: () => import('@/views/file-manager')
             }
         ]
     }

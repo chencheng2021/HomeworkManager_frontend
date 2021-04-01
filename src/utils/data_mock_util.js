@@ -30,7 +30,7 @@ export function mock_student_contact_data(size){
     }
     for (let i = 0; i < size; i++) {
         let item = {
-            student_no : "1625111037",
+            student_no : "1625111037"+i,
             name: '张大炮',
             gender: i%2===0?'男':'女',
             contact: '183029401132',
@@ -157,6 +157,25 @@ export function mock_nt_members_info(){
             item.student_no = '———'
             item.member_class = '———'
             item.member_type = '家长'
+        }
+        mock_data.push(item)
+    }
+    return mock_data
+}
+
+export function mock_file_data(size){
+    let mock_data = []
+    if (typeof size === 'undefined'){
+        size = 20
+    }
+    for (let i = 0; i < size; i++) {
+        let item = {
+            id: i,
+            name: '测试文件-' + i,
+            publish_state: (i % 2 === 0) ? 0 : 1,
+            type: (i % 2 === 0) ? 'jpg' : 'docx',
+            url: 'http://47.96.232.239/homeworkmanager/uploads/file_test111111-a0cc92de-c97f-40a6-b5c1-3aa5363f5e23.jpg',
+            upload_date: '2021-04-01 12:23',
         }
         mock_data.push(item)
     }

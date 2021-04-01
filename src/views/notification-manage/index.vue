@@ -160,14 +160,13 @@
         <el-button type="info" style="width: 120px" plain @click="handle_drawer_close">取消</el-button>
       </div>
     </el-drawer>
-    <el-dialog title="可通知学生列表" :visible.sync="nt_obj_dialog_open_flag"
+    <el-dialog :title="nt_obj_dialog_title" :visible.sync="nt_obj_dialog_open_flag"
                :close-on-press-escape="false"
                :show-close="false" :close-on-click-modal="false">
       <member-table
           ref="selection_table"
           :selection_mode="true" :table_render_data="student_table_render_data"
-          :selection_change_handler="handle_nt_obj_selection"
-          table_height="500" :enable_operate="false" :show_full_info="false" :use_index="false"></member-table>
+          :selection_change_handler="handle_nt_obj_selection"></member-table>
       <div style="margin-top: 30px;text-align: center">
         <el-button type="success" style="width: 120px" round @click="cache_nt_obj_id">确认</el-button>
         <el-button type="cancel" style="width: 120px" round @click="() => {this.nt_obj_dialog_open_flag = false}">取消</el-button>
@@ -216,6 +215,7 @@ export default {
       ],
       // 通知内容最大长度；文本和附件通知为256，短信通知为：60
       content_max_len: 256,
+      // 当前通知类型
       curr_nt_type: -1,
       create_drawer_open_flag: false,
       notification_form:{
@@ -252,14 +252,15 @@ export default {
       ],
       // 通知对象的类型，通知的对象可以是班级、学生或家长
       nt_obj_type_selection:[
-        {label: '班级通知', val: 'class'},
-        {label: '学生通知', val: 'student'},
-        {label: '家长通知', val: 'parent'}
+        {label: '通知班级', val: 'class'},
+        {label: '通知学生', val: 'student'},
+        {label: '通知家长', val: 'parent'}
       ],
       class_table_render_data:mock_class_info_data(3),
       student_table_render_data: mock_student_contact_data(56),
       parent_table_render_data: mock_parent_contact_data(mock_student_contact_data(56)),
       nt_obj_dialog_open_flag: false,
+      nt_obj_dialog_title: '',
       // 在表格多选界面中选择的通知对象信息
       nt_obj_list: [],
       // 在表格进行多选时，点击确认按钮后，数据会保存到该中间数组中
@@ -355,6 +356,8 @@ export default {
             this.create_drawer_open_flag  = false
             this.$message.success('已成功发布通知')
           }else {
+            // 弹出选择通知对象的对话框
+            this.handle_dialog_open()
             this.$message.warning('请选择至少一个通知对象！')
           }
         }else {
@@ -373,6 +376,11 @@ export default {
       this.handle_dialog_open()
     },
     handle_dialog_open(){
+      // 计算对话框标题
+      let nt_obj_type = this.nt_obj_type_selection.find( item => {
+        return item.val === this.notification_form.member_type
+      })
+      this.nt_obj_dialog_title = '可'+nt_obj_type.label+'列表'
       // 每次打开都需要先清除该中间数组的缓存值，防止多选累加
       this.temp_selected_pid = []
       this.nt_obj_dialog_open_flag = true
@@ -386,15 +394,19 @@ export default {
       this.nt_obj_list = val
     },
     cache_nt_obj_id(){
-      this.nt_obj_list.forEach( item => {
-        let id = item.id
-        if (typeof id === 'undefined'){
-          // 学生的id字段名是student_no
-          id = item.student_no
-        }
-        this.temp_selected_pid.push(id)
-      })
-      this.handle_dialog_close()
+      if (this.nt_obj_list.length !== 0){
+        this.nt_obj_list.forEach( item => {
+          let id = item.id
+          if (typeof id === 'undefined'){
+            // 学生的id字段名是student_no
+            id = item.student_no
+          }
+          this.temp_selected_pid.push(id)
+        })
+        this.handle_dialog_close()
+      }else {
+        this.$message.warning('请至少选择一个通知对象！')
+      }
     }
   }
 }

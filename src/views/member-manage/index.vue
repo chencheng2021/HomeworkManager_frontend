@@ -7,9 +7,8 @@
       </div>
       <div style="width: 80%;line-height: 100px">
         <div style="float: right">
-        <!--    目前成员管理不需要额外的操作按钮      -->
-<!--          <el-button type="success" style="width: 140px;height: 50px;margin-right: 40px"
-                     icon="el-icon-message-solid" @click="handle_drawer_open">发布通知</el-button>-->
+          <el-button type="primary" style="width: 140px;height: 50px;margin-right: 40px"
+                     icon="el-icon-refresh" @click="refresh_meta_data">重新加载</el-button>
         </div>
       </div>
     </div>
@@ -44,7 +43,7 @@
       </div>
       <div style="width: 120px;height: 50px;line-height: 50px">
         <el-button plain icon="el-icon-refresh"
-                   @click="() => {this.table_render_data = this.student_info_meta_data}">重新加载</el-button>
+                   @click="refresh_meta_data">重新加载</el-button>
       </div>
     </div>
     <div style="height: auto;overflow-y: hidden!important;">
@@ -88,7 +87,7 @@ import {filter_by_class, filter_by_name, filter_by_student_no} from "@/provider/
 import {get_max_length_checker, get_string_checker} from "@/utils/checker_util";
 
 export default {
-  name: "index",
+  name: "member-manager",
   components: { MemberTable, CommonPagination},
   data() {
     return {
@@ -175,8 +174,15 @@ export default {
       }
 
     },
-    handle_member_remove(){
-
+    handle_member_remove(member){
+      this.student_info_meta_data = this.student_info_meta_data.filter( item => {
+        return item.student_no !== member.student_no
+      })
+      this.table_render_data = deeply_copy_obj(this.student_info_meta_data)
+    },
+    refresh_meta_data(){
+      this.student_info_meta_data = mock_student_contact_data(10)
+      this.table_render_data = this.student_info_meta_data
     }
   }
 }

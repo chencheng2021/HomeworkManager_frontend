@@ -71,10 +71,10 @@
         <el-table-column property="social_account" label="QQ号"></el-table-column>
       </el-table>
       <div style="margin-top: 20px;width: 100%;text-align: center;display: flex;justify-content: center">
-        <el-upload action="http://192.168.137.127:9090/test/upload" :on-exceed="() => {this.$message.warning('单次只能上传一个文件')}"
+        <el-upload action="" :on-exceed="() => {this.$message.warning('单次只能上传一个文件')}"
                    :on-change="handle_change_when_importing"
                    :on-remove="handle_remove_when_importing" :file-list="file_list_upload"
-                   :auto-upload="true"
+                   :auto-upload="false"
                    :limit="1" name="file"
                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
           <el-button slot="trigger" type="primary"  round style="margin-right: 20px">选择文件</el-button>
