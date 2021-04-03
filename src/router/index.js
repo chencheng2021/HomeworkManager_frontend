@@ -32,7 +32,7 @@ const system_router = [
                 path: 'home',
                 name: 'home',
                 meta:{title: '首页', icon: 'el-icon-s-home'},
-                component: () => import('@/views/template')
+                component: () => import('@/views/dashboard')
             }
         ]
     },

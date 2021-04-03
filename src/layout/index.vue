@@ -78,5 +78,8 @@ body > .el-container {
 .main{
   height: 100%;
 }
+.footer{
+  margin-top: 0;
+}
 
 </style>

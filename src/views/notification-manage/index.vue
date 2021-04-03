@@ -171,8 +171,13 @@
         <el-button type="success" style="width: 120px" round @click="cache_nt_obj_id">确认</el-button>
         <el-button type="cancel" style="width: 120px" round @click="() => {this.nt_obj_dialog_open_flag = false}">取消</el-button>
       </div>
-
-<!--      TODO  附件类型的通知可以选择用户自己的文件或上传-->
+    </el-dialog>
+    <el-dialog :visible="file_upload_dialog_open" center
+               @close="() => {this.file_upload_dialog_open = false}"
+               title="附件上传" width="500px">
+      <div style="width: 100%;height: 100px">
+        <file-upload-btn @upload-success="handle_upload_success"></file-upload-btn>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -191,10 +196,11 @@ import {get_max_length_checker, get_string_checker} from "@/utils/checker_util";
 import {deeply_copy_obj, form_check, form_clear} from "@/provider/common_provider";
 import {filter_by_content, filter_by_title} from "@/provider/data_filter_delegator";
 import MemberTable from "@/components/member-table";
+import FileUploadBtn from "@/components/file-upload-btn";
 
 export default {
   name: "notification-manage",
-  components: {MemberTable, CommonPagination, FileCard},
+  components: {FileUploadBtn, MemberTable, CommonPagination, FileCard},
   data(){
     return {
       notification_meta_data: mock_notification_data(),
@@ -265,7 +271,8 @@ export default {
       nt_obj_list: [],
       // 在表格进行多选时，点击确认按钮后，数据会保存到该中间数组中
       // 当用户最终确定发布通知时，该中间数组的数据才会被复制到notification_form.pidList中
-      temp_selected_pid: []
+      temp_selected_pid: [],
+      file_upload_dialog_open: false
     }
   },
   methods: {
@@ -332,6 +339,10 @@ export default {
         this.content_max_len = 60
       }else {
         this.content_max_len = 256
+      }
+      // 切换为附件通知时需要弹出文件上传的对话框
+      if (this.notification_form.type === 1){
+        this.file_upload_dialog_open = true
       }
       let msg = this.nt_type_selection.find( obj => {
         if (obj.val === val){
@@ -407,6 +418,9 @@ export default {
       }else {
         this.$message.warning('请至少选择一个通知对象！')
       }
+    },
+    handle_upload_success(file_id) {
+      this.notification_form.attachment.push(file_id);
     }
   }
 }

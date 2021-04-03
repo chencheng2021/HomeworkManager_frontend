@@ -9,7 +9,9 @@
         <div style="float: right">
           <el-button type="primary" class="file-manager-header-btn"
                      icon="el-icon-refresh" @click="refresh_meta_data">重新加载</el-button>
-          <el-button type="success" class="file-manager-header-btn" icon="el-icon-upload">
+          <el-button type="success" class="file-manager-header-btn"
+                     @click="handle_upload_dialog_open"
+                     icon="el-icon-upload">
             上传文件
           </el-button>
         </div>
@@ -21,6 +23,11 @@
         <common-pagination></common-pagination>
       </div>
     </div>
+    <el-dialog :visible.sync="upload_dialog_open_flag" center title="文件上传" width="500px">
+      <div style="width: 100%;height: 100px">
+        <file-upload-btn @upload-success="handle_upload_dialog_close"></file-upload-btn>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -29,14 +36,16 @@ import {mock_file_data} from "@/utils/data_mock_util";
 import {deeply_copy_obj} from "@/provider/common_provider";
 import FileTable from "@/components/file-table";
 import CommonPagination from "@/components/pagination";
+import FileUploadBtn from "@/components/file-upload-btn";
 
 export default {
   name: "file-manager",
-  components: {CommonPagination, FileTable},
+  components: {FileUploadBtn, CommonPagination, FileTable},
   data() {
     return {
       file_meta_data: mock_file_data(10),
-      file_table_render_data: deeply_copy_obj(mock_file_data(10))
+      file_table_render_data: deeply_copy_obj(mock_file_data(10)),
+      upload_dialog_open_flag: false
     }
   },
   methods: {
@@ -53,7 +62,14 @@ export default {
     refresh_meta_data(){
       this.file_meta_data = mock_file_data(10)
       this.file_table_render_data = this.file_meta_data
-    }
+    },
+    handle_upload_dialog_open(){
+      this.upload_dialog_open_flag = true
+    },
+    handle_upload_dialog_close(){
+      this.upload_dialog_open_flag = false
+    },
+
   }
 }
 </script>

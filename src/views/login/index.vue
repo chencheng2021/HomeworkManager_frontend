@@ -14,7 +14,7 @@
           <!--第二层左侧框-->
           <div style="width: 35%;height: 100%;">
             <el-card shadow="none" :body-style="{padding:'0px'}"
-                     style="width: 80%;height: 90%;margin-left: 10%;margin-top: 5%;border: 0;text-align: center;background: #FAFDFF">
+                     style="width: 80%;height: 90%;margin-left: 10%;margin-top: 5%;border: 0;text-align: center;background: #FCFDFF">
               <div style="margin-top: 100px;margin-bottom: 50px"><label style="color: #1d82ff;font-size: 23px;">作业推送管理系统-教师端</label></div>
               <div style="margin-top: 30px;">
                 <el-form :model="loginForm" status-icon ref="loginForm" label-position="right" >
@@ -115,7 +115,7 @@ name: "login",
 
 .content-card{
   width: 80%;height: 80%;margin-left: 10%;margin-top:5%;
-  background: #FAFDFF;
+  background:#FCFDFF;
   /*阴影效果*/
   /*box-shadow:0 1px 50px rgba(0,0,0,0.3),0 0 20px rgba(0,0,0,0.1)*/
 }

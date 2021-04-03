@@ -33,3 +33,7 @@ export function form_clear(view,form_name){
 export function deeply_copy_obj(obj){
     return JSON.parse(JSON.stringify(obj))
 }
+
+export function get_file_upload_url(){
+    return 'http://192.168.31.90:9090/test/upload'
+}
