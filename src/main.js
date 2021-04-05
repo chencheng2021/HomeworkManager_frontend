@@ -18,6 +18,10 @@ axios.defaults.headers = {
   'Content-Type':'application/json;charset=UTF-8'
 };
 
+/*全局引入初始加载和关闭模块*/
+import fullScreenLoading from "@/vendor/full_screen_loading";
+Vue.use(fullScreenLoading)
+
 /*
 * 给组件动态生成其设置的title
 * */

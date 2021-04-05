@@ -7,7 +7,6 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import {Notification} from "element-ui";
-import {error_desc_match} from "@/utils/error_code_util";
 import {clear_token} from "@/utils/authenticate_util";
 import Router from '@/router'
 
@@ -17,10 +16,17 @@ axios.defaults.headers.retryInterval=1000
 
 const public_route_name = ['login','register']
 
+export const base_api_path = '/api/homeworkmanager'
+
 const http_service=axios.create(
     {
-        baseURL:'',
+        baseURL: base_api_path,
         timeout:10000,
+        // 对后端所有请求的访问都使用post类型
+        method: 'post',
+        headers: {
+            'Authorization': ''
+        }
     }
 );
 
@@ -39,7 +45,7 @@ http_service.interceptors.response.use(
 
         // 提取返回数据
         const data = response.data
-        const error_code = data.errorCode
+        const error_code = data.code
         if (error_code === undefined){
             return data
         }
@@ -47,7 +53,7 @@ http_service.interceptors.response.use(
         // 约定错误码为0时是成功的返回
         // 不为0时，服务端服务出错或失败
         if (error_code !== 0){
-            const error_desc = error_desc_match(error_code)
+            const error_desc = data.msg
             Message.error(error_desc)
             // 约定5xx的区间时服务出现异常的错误码段
             if (error_code >= 500 && error_code < 600){
@@ -58,7 +64,7 @@ http_service.interceptors.response.use(
                 clear_token()
                 Router.push('/homeworkmanager/login').then()
             }else {
-                return null
+                return Promise.reject()
             }
         }else {
             // 将服务端返回数据封装的真实的数据返回
@@ -155,3 +161,14 @@ function jump_necessary(current_route){
     })
     return jump_route
 }
+
+export function set_authorization(token){
+    this.http_service.headers.Authorization = token
+}
+
+export function remove_authorization(){
+    this.http_service.headers.Authorization = ''
+}
+
+
+export default http_service

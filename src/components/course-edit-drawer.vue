@@ -72,6 +72,7 @@ export default {
   methods:{
     reset_form(){
       form_clear(this,'course_data_form')
+      this.$emit('close')
     },
     check_before_submit(){
       // 每次提交表单前都需要将mode修改为创建模式

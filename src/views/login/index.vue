@@ -17,10 +17,10 @@
                      style="width: 80%;height: 90%;margin-left: 10%;margin-top: 5%;border: 0;text-align: center;background: #FCFDFF">
               <div style="margin-top: 100px;margin-bottom: 50px"><label style="color: #1d82ff;font-size: 23px;">作业推送管理系统-教师端</label></div>
               <div style="margin-top: 30px;">
-                <el-form :model="loginForm" status-icon ref="loginForm" label-position="right" >
-                  <el-form-item prop="email" style="margin-bottom: 30px">
+                <el-form :model="loginForm" status-icon ref="loginForm" label-position="right" :rules="login_form_rules">
+                  <el-form-item prop="username" style="margin-bottom: 30px">
                     <el-card shadow="hover" :body-style="{padding:'0'}">
-                      <el-input placeholder="教工号" type="text" v-model="loginForm.email">
+                      <el-input placeholder="教工号" type="text" v-model="loginForm.username" style="border-radius: 30px!important;">
                       <span slot="prefix">
                         <i class="el-icon-user" style="margin-top:16px;font-size: 18px;color: #1d82ff"></i>
                       </span>
@@ -39,13 +39,14 @@
                   <div style="width: 100%;height: 30px;display: flex;">
                     <div style="text-align: left;line-height: 30px;width: 50%;">
                       <el-checkbox v-model="rememberMe"
+                                   @change="remember_user"
                                    style="font-size: 10px;color: #A6A7AD;">记住密码</el-checkbox>
                     </div>
                     <div style="text-align: right;font-size:14px;width: 50%;line-height: 30px;color: #A6A7AD;">
-                      <span class="forget-pass-btn" >忘记密码</span>
+                      <span class="forget-pass-btn" @click="handle_pass_dialog_open">忘记密码</span>
                     </div>
                   </div>
-                  <el-card shadow="hover" class="submit-btn">
+                  <el-card shadow="hover" class="submit-btn" @click.native="submit_login">
                     <span> 登 录 <i class="el-icon-right"></i></span>
                   </el-card>
                 </el-form>
@@ -56,21 +57,44 @@
         </div>
       </div>
     </div>
-
-
-
+    <el-dialog :visible.sync="showResetPassDialog" center title="修改密码" width="500px">
+      <reset-pass :teacher_no="loginForm.username" ref="reset_pass"></reset-pass>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import {base_path, decrypt, encrypt} from "@/provider/common_provider";
+import {get_string_checker} from "@/utils/checker_util";
+import {obtain, save} from "@/provider/local_storage_provider";
+import ResetPass from "@/components/reset-pass";
+import {login} from "@/api/user_service";
+
+const remember_key = 'UH4KJ5YKJ5AS6D6FK7JH7AE-US7AHD'
+
 export default {
-name: "login",
+  name: "login",
+  components: {ResetPass},
+  created() {
+    let remember_usr_str = obtain(remember_key)
+    if (remember_usr_str){
+      let remember_usr = JSON.parse(decrypt(remember_usr_str))
+      this.loginForm.username = remember_usr.username
+      this.loginForm.password = remember_usr.password
+    }
+  },
   data(){
 
     return{
       loginForm:{
-        email:'',
+        username:'',
         password:''
+      },
+      login_form_rules: {
+        username: [
+         get_string_checker('请输入教工号')
+        ],
+        password: [get_string_checker('请输入登录密码')]
       },
       rememberMe:false,
       imgBkDivStyle:{
@@ -86,10 +110,46 @@ name: "login",
         height: '100px',
       },
       showResetPassDialog:false,
-      loading:false,
     }
   },
 
+  methods: {
+    submit_login(){
+      this.$refs.loginForm.validate(valid=>{
+        if (valid){
+          this.$fsloading.startLoading('登录验证中...')
+          login(this.loginForm.username,this.loginForm.password).then( resp => {
+            console.log(resp)
+            //this.$store.dispatch( 'process_login', resp.theacher_info, resp.token)
+            this.$fsloading.endLoading()
+            this.$router.push(base_path + '/home')
+          }).catch( () =>{
+            this.$fsloading.endLoading()
+          })
+        }else {
+          return false
+        }
+      })
+    },
+    remember_user(){
+      if (this.rememberMe){
+        if (this.loginForm.username !== '' && this.loginForm.password !== ''){
+          save(remember_key,encrypt(JSON.stringify(this.loginForm)))
+        }
+      }
+    },
+    handle_pass_dialog_open() {
+      if (this.loginForm.username !== ''){
+        this.showResetPassDialog = true
+      }else{
+        this.$message.warning('请先输入教工号')
+      }
+    },
+    handle_pass_dialog_close(){
+      this.$refs.reset_pass.clear_form()
+      this.showResetPassDialog = false
+    }
+  }
 
 }
 </script>

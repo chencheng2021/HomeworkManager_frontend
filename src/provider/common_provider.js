@@ -4,6 +4,8 @@
  * @description     一些公共方法的提供者
  */
 
+export const base_path = '/homeworkmanager'
+
 export function link_jumping(link,jump_with_new_window){
     if (jump_with_new_window === undefined || jump_with_new_window){
         window.open(link)
@@ -36,4 +38,18 @@ export function deeply_copy_obj(obj){
 
 export function get_file_upload_url(){
     return 'http://192.168.31.90:9090/test/upload'
+}
+
+export function encrypt(origin){
+    if (typeof origin !== 'string'){
+        return origin
+    }
+    return window.btoa(origin)
+}
+
+export function decrypt(cipher){
+    if (typeof cipher !== 'string'){
+        return cipher
+    }
+    return window.atob(cipher)
 }

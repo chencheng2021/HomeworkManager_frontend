@@ -11,7 +11,7 @@
           <el-input v-model="class_data_form.class_code" placeholder="请输入班级编号"></el-input>
         </el-form-item>
         <el-form-item label="班主任">
-          <el-input value="Vinfer" disabled></el-input>
+          <el-input :value="head_teacher_name" disabled></el-input>
         </el-form-item>
       </el-form>
     </div>
@@ -44,6 +44,11 @@ export default {
       }
     }
   },
+  computed: {
+    head_teacher_name(){
+      return '陈城'
+    }
+  },
   data(){
     return{
       class_data_form:{
@@ -69,6 +74,7 @@ export default {
   methods:{
     reset_form(){
       form_clear(this,'class_data_form')
+      this.$emit('close')
     },
     check_before_submit(){
       // 每次提交表单前都需要将mode修改为创建模式

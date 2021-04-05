@@ -4,11 +4,12 @@ module.exports={
     devServer:{
         proxy:{
             '/test':{
-                target:'http://192.168.137.127:9090/',
+                target:'http://192.168.31.90:9090/',
                 changeOrigin:true
             },
-            '/homeworkmanager/api':{
-                target:'http://192.168.137.127:9090/',
+            '/api/homeworkmanager':{
+                target:'http://192.168.31.90:9090/',
+                changeOrigin:true
             },
         }
     },

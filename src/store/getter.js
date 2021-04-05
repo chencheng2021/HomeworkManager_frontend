@@ -4,6 +4,9 @@
  * @description vuex数据读取模块
  */
 
-const getter = {}
+const getter = {
+    user: state => state.user,
+    teacher_no: state => state.user.teacher_no
+}
 
 export default getter

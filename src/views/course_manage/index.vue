@@ -33,6 +33,7 @@
       <el-divider></el-divider>
       <div class="course-manage_drawer-body">
         <course-edit-drawer
+            @close="close_drawer"
             ref="course_edit_drawer"
             :form_submit_handler="handle_form_submit"></course-edit-drawer>
       </div>
@@ -107,7 +108,6 @@ export default {
       this.info_dialog_open_flag = true
     },
     close_drawer(){
-      this.clear_form()
       this.drawer_open_flag = false
     },
     handle_course_file_list(item){
@@ -116,6 +116,7 @@ export default {
     },
     clear_form(){
       this.$refs.course_edit_drawer.reset_form()
+      this.close_drawer()
     },
   }
 }

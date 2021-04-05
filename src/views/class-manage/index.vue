@@ -35,6 +35,7 @@
       <div class="class-manage_drawer-body">
         <class-edit-drawer
             ref="class_edit_drawer"
+            @close="close_drawer"
             :form_submit_handler="handle_form_submit"></class-edit-drawer>
       </div>
     </el-drawer>
@@ -179,7 +180,6 @@ export default {
       this.handle_import_dialog_close()
     },
     close_drawer(){
-      this.clear_form()
       this.drawer_open_flag = false
     },
     handle_import_dialog_close(){

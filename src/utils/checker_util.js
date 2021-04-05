@@ -50,3 +50,27 @@ export function get_default_number_checker(){
         }
     ]
 }
+
+export function get_phone_checker(){
+    return (rule,value,callback) => {
+        if (value === ''){
+            return callback(new Error('请输入手机号码'))
+        }else if (!(/^1[3456789]\d{9}$/.test(value))){
+            return callback(new Error('请输入正确的手机号码'))
+        }else {
+            return callback()
+        }
+    }
+}
+
+export function get_code_checker(){
+    return (rule,value,callback)=>{
+        if(value===''){
+            return callback(new Error('短信验证码不能为空'))
+        }else if(!/^\d{6}$/.test(value)) {
+            return callback(new Error('短信验证码为6位数字值'))
+        }else{
+            return callback()
+        }
+    }
+}

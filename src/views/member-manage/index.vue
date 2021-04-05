@@ -41,10 +41,6 @@
           <el-button plain icon="el-icon-search" @click="handle_search"></el-button>
         </div>
       </div>
-      <div style="width: 120px;height: 50px;line-height: 50px">
-        <el-button plain icon="el-icon-refresh"
-                   @click="refresh_meta_data">重新加载</el-button>
-      </div>
     </div>
     <div style="height: auto;overflow-y: hidden!important;">
       <member-table :table_render_data="table_render_data"

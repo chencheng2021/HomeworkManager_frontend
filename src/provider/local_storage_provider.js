@@ -29,7 +29,6 @@ export function save_collect_item(collect_key,item){
 
 export function obtain_collect(collect_key){
     let collect = provider.getItem(collect_key);
-    console.log(collect)
     if (check_not_null(collect)){
         return JSON.parse(collect)
     }else {
@@ -70,8 +69,11 @@ export function save_key(key){
     provider.setItem(key_saver,JSON.stringify(saver))
 }
 
-export function obtain(key){
-    provider.getItem(key)
+export function obtain(key,is_obj){
+    if (is_obj){
+        return JSON.parse(provider.getItem(key))
+    }
+    return provider.getItem(key)
 }
 
 export function remove(key){

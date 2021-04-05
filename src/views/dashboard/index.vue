@@ -34,8 +34,8 @@
     </div>
     <div style="width: 100%;height: 510px;display: flex;">
       <div style="width: 50%;padding: 0 10px;background-color: #ffffff">
-        <div style="height: 60px;line-height: 60px;text-align: left;width:100%;border-bottom: #A6A7AD solid">
-          <label>备 忘 录</label>
+        <div style="height: 60px;line-height: 60px;text-align: left;width:100%;border-bottom: #F2F6FC solid ">
+          <label>本 地 备 忘 录</label>
           <div style="float: right;width: 300px">
             <el-button type="primary" plain style="width: 120px;margin-left: 10px"
                        @click="open_memo_dialog"
@@ -134,7 +134,7 @@ export default {
         if (valid){
           this.memo_form.key = String(new Date().getTime())
           // todo 这里要将日期格式化为 YY-MM-DD HH:mm
-          this.memo_form.date = new Date()
+          this.memo_form.date = this.time_format(new Date().getTime(),true)
           // 保存到localstorage
           save_collect(collect_name,this.memo_form)
           // 添加到渲染数据中
@@ -168,7 +168,7 @@ export default {
       })
       this.memo_collections = obtain_collect(collect_name)
     },
-    time_format(timeStamp) {
+    time_format(timeStamp,transform_date) {
       let date = new Date(timeStamp)
       let hh =date.getHours() < 10? "0" + date.getHours(): date.getHours();
       let mm =date.getMinutes() < 10? "0" + date.getMinutes(): date.getMinutes();
@@ -176,7 +176,13 @@ export default {
       this.now_hour = hh
       this.now_min = mm
       this.now_sec =ss
-      this.now_week_day = this.get_week_day(new Date(timeStamp).getDay())
+      this.now_week_day = this.get_week_day(date.getDay())
+      if (transform_date){
+        let year = date.getFullYear()
+        let month = date.getMonth() + 1
+        let day = date.getDate()
+        return year + '-' + month + '-' + day + ' ' + hh + ':' + mm
+      }
     },
     get_week_day(day_order){
       switch (day_order) {
