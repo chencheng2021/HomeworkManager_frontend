@@ -17,6 +17,16 @@ export function get_file_page(page_size,page_num){
     })
 }
 
+export function publish_file(file_id,publish_id){
+    return request({
+        url: '/file/publish',
+        data: {
+            file_id: file_id,
+            publish_id: publish_id
+        }
+    })
+}
+
 export function update_file_name(file_id,file_name){
     return request({
         url: '/file/update',

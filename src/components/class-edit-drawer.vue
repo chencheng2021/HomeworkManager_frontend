@@ -55,7 +55,6 @@ export default {
         id: 0,
         name: '',
         class_code: '',
-        header_teacher_no: ''
       },
       class_form_rules:{
         name:[

@@ -6,6 +6,8 @@
 
 export const base_path = '/homeworkmanager'
 
+export const unhandled = () => {}
+
 export function link_jumping(link,jump_with_new_window){
     if (jump_with_new_window === undefined || jump_with_new_window){
         window.open(link)

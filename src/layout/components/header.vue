@@ -14,7 +14,7 @@
             <i class="el-icon-arrow-down" style="cursor: pointer"></i>
           </label>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item icon="el-icon-switch-button" style="color: #39A2EF" @click.native="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item icon="el-icon-switch-button" style="color: #39A2EF" @click.native="do_logout">退出登录</el-dropdown-item>
             <el-dropdown-item icon="el-icon-user" style="color: #39A2EF" @click.native="open_user_info_dialog">个人信息</el-dropdown-item>
             <el-dropdown-item icon="el-icon-mobile-phone" style="color: #39A2EF" @click.native="open_update_phone_dialog">修改手机</el-dropdown-item>
           </el-dropdown-menu>
@@ -70,6 +70,9 @@
 <script>
 import {base_path} from "@/provider/common_provider";
 import {get_code_checker, get_phone_checker} from "@/utils/checker_util";
+import {send, verify} from "@/api/sms_service";
+import {logout, update_phone} from "@/api/user_service";
+import {clear_token} from "@/utils/authenticate_util";
 
 export default {
   name: "Header",
@@ -111,8 +114,13 @@ export default {
     }
   },
   methods: {
-    logout() {
-      this.$router.push(base_path + '/login')
+    do_logout() {
+      logout().then(() => {
+        // 清除本地的登录凭证
+        clear_token()
+        // 回到登录页
+        this.$router.push(base_path + '/login')
+      }).catch(() => {})
     },
     open_user_info_dialog(){
       this.user_info_dialog_open = true
@@ -121,13 +129,38 @@ export default {
       this.update_phone_dialog_open = true
     },
     sending_sms() {
+      let phone = this.update_phone_form.phone
+      if (phone !== ''){
+        if (phone !== this.user_form.contact){
+          if ((/^1[3456789]\d{9}$/.test(phone))){
+            send(phone).then( () => {
+              this.$message.success('已成功向手机号'+this.update_phone_form.phone.phone+'发送短信')
+            }).catch( () => {} )
+          }else {
+            this.$message.warning('请输入正确的手机号码')
+          }
+        }else {
+          this.$message.warning('新绑定的手机不能与旧手机号相同')
+        }
 
+      }else {
+        this.$message.warning('请输入手机号码')
+      }
     },
     submit_update(){
       this.$refs.update_phone_form.validate( valid => {
         if (valid){
-          console.log('')
-
+          let phone = this.update_phone_form.phone;
+          verify(phone, this.update_phone_form.verify_code).then(() => {
+            update_phone(this.update_phone_form).then( () => {
+              // 更新当前绑定的渲染数据
+              this.user_form.contact = phone
+              // 更新store缓存
+              this.$store.dispatch('update_contact', phone)
+              this.update_phone_dialog_open = false
+              this.$message.success('已成功修改绑定手机为'+phone)
+            }).catch(() => {})
+          }).catch(() => {})
         }else {
           return false
         }

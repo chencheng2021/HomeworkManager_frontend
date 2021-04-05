@@ -49,7 +49,7 @@ export default {
     handle_upload_success(response){
       this.$message.success('已成功上传所选文件')
       // 通知父组件，让父组件做出相应操作
-      // 这里的response就是服务端返回的文件的id
+      // 这里的response就是服务端返回的文件的id，文件名称以及文件url
       // element-ui会将返回的数据取出然后再回调方法
       this.$emit('upload-success',response)
       // 清空已选文件缓存

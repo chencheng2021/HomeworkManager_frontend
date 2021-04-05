@@ -22,6 +22,9 @@ axios.defaults.headers = {
 import fullScreenLoading from "@/vendor/full_screen_loading";
 Vue.use(fullScreenLoading)
 
+/**配置路由权限验证*/
+import '@/router/permission'
+
 /*
 * 给组件动态生成其设置的title
 * */

@@ -58,13 +58,13 @@
       </div>
     </div>
     <el-dialog :visible.sync="showResetPassDialog" center title="修改密码" width="500px">
-      <reset-pass :teacher_no="loginForm.username" ref="reset_pass"></reset-pass>
+      <reset-pass :teacher_no="loginForm.username" ref="reset_pass" @success="handle_pass_dialog_close"></reset-pass>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import {base_path, decrypt, encrypt} from "@/provider/common_provider";
+import {decrypt, encrypt} from "@/provider/common_provider";
 import {get_string_checker} from "@/utils/checker_util";
 import {obtain, save} from "@/provider/local_storage_provider";
 import ResetPass from "@/components/reset-pass";
@@ -119,10 +119,13 @@ export default {
         if (valid){
           this.$fsloading.startLoading('登录验证中...')
           login(this.loginForm.username,this.loginForm.password).then( resp => {
-            console.log(resp)
-            //this.$store.dispatch( 'process_login', resp.theacher_info, resp.token)
             this.$fsloading.endLoading()
-            this.$router.push(base_path + '/home')
+            let token = resp.token
+            if (token){
+              this.$store.dispatch( 'process_login', resp.theacher_info, token).then(() => {
+                this.$fsloading.endLoading()
+              })
+            }
           }).catch( () =>{
             this.$fsloading.endLoading()
           })

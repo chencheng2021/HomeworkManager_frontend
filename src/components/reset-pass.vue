@@ -21,6 +21,8 @@
 
 <script>
 import {get_code_checker, get_max_length_checker, get_phone_checker, get_string_checker} from "@/utils/checker_util";
+import {send, verify} from "@/api/sms_service";
+import {update_pass} from "@/api/user_service";
 
 export default {
   name: "reset-pass",
@@ -47,13 +49,35 @@ export default {
   },
   methods: {
     sending_sms(){
-
+      let phone = this.reset_pass_form.phone
+      if (phone !== ''){
+        if ((/^1[3456789]\d{9}$/.test(phone))){
+          send(phone).then( () => {
+            this.$message.success('已成功向手机号'+this.reset_pass_form.phone+'发送短信')
+          }).catch( () => {} )
+        }else {
+          this.$message.warning('请输入正确的手机号码')
+        }
+      }else {
+        this.$message.warning('请输入手机号码')
+      }
     },
     submit_form(){
       this.reset_pass_form.teacher_no = this.teacher_no
       this.$refs.reset_pass_form.validate(valid => {
         if (valid){
-          console.log('')
+          this.$fsloading.startLoading('正在提交修改...')
+          // 验证短信验证码
+          verify(this.reset_pass_form.phone,this.reset_pass_form.verify_code).then(() => {
+            update_pass(this.reset_pass_form).then(() => {
+              this.$fsloading.endLoading()
+              this.$emit('success')
+            }).catch(() => {
+              this.$fsloading.endLoading()
+            })
+          }).catch(() => {
+            this.$fsloading.endLoading()
+          })
         }else {
           return false
         }
@@ -77,7 +101,6 @@ export default {
 }
 
 .reset-form-btn{
-  border-radius: 0;
   margin-top: 20px;
 }
 

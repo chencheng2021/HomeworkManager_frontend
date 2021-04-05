@@ -24,9 +24,7 @@ const http_service=axios.create(
         timeout:10000,
         // 对后端所有请求的访问都使用post类型
         method: 'post',
-        headers: {
-            'Authorization': ''
-        }
+        headers: {}
     }
 );
 
@@ -50,21 +48,21 @@ http_service.interceptors.response.use(
             return data
         }
         // 对错误码的全局处理
-        // 约定错误码为0时是成功的返回
-        // 不为0时，服务端服务出错或失败
-        if (error_code !== 0){
+        // 约定错误码为200时是成功的返回
+        // 不为200时，服务端服务出错或失败
+        if (error_code !== 200){
             const error_desc = data.msg
             Message.error(error_desc)
-            // 约定5xx的区间时服务出现异常的错误码段
-            if (error_code >= 500 && error_code < 600){
-                return Promise.reject()
-            }else if (error_code === 403 || error_code === 405){
+            // 特殊错误码处理
+            if (error_code === 403 || error_code === 405){
                 // 403代表用户账号已被禁止，405代表用户登录已过期
                 // 这两种情况都需要清除本地的登录token，强制用户退出到登录页面
                 clear_token()
                 Router.push('/homeworkmanager/login').then()
             }else {
-                return Promise.reject()
+                // 其余非200的错误码都是后端服务未成功的反馈，这里需要返回reject给调用方
+                // 可以在catch中进行例如关闭遮罩的这种操作
+                return Promise.reject(response)
             }
         }else {
             // 将服务端返回数据封装的真实的数据返回
@@ -163,11 +161,13 @@ function jump_necessary(current_route){
 }
 
 export function set_authorization(token){
+    // 为当前请求头动态增加Authorization属性
     this.http_service.headers.Authorization = token
 }
 
 export function remove_authorization(){
-    this.http_service.headers.Authorization = ''
+    // 删除当前请求头的Authorization属性
+    delete  this.http_service.headers.Authorization
 }
 
 

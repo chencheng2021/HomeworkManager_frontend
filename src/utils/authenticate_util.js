@@ -11,7 +11,7 @@ const local_storage = window.localStorage
 
 export function verify_token(){
     let token = obtain_token()
-    if (token === undefined){
+    if (token === null){
         return false
     }else {
         let parts = token.split('.')

@@ -12,7 +12,7 @@
         </el-form-item>
         <el-form-item label="课程学分" prop="credit" >
           <!--使用数值校验时，需要使用v-model.number来进行绑定-->
-          <el-input v-model.number="course_data_form.credit"  placeholder="请输入课程学分（数值）"></el-input>
+          <el-input v-model.number="course_data_form.credit"  disabled></el-input>
         </el-form-item>
         <el-form-item label="课程周期(周)" prop="course_period">
           <el-input v-model="course_data_form.course_period"  placeholder="请输入课程上课周期（数值）"></el-input>

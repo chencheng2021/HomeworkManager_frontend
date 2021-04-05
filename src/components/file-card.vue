@@ -1,5 +1,5 @@
 <template>
-  <div style="cursor: pointer">
+  <div style="cursor: pointer" v-if="file_data_list.length > 0">
     <template v-for="item in file_data_list" >
       <el-card shadow="hover" style="align-content: center;margin-bottom: 20px" :key="item.id">
         <i class="el-icon-paperclip"></i>
@@ -12,6 +12,9 @@
         </div>
       </el-card>
     </template>
+  </div>
+  <div v-else style="text-align: center">
+    <label>还未发布或上传任何班级文件</label>
   </div>
 </template>
 

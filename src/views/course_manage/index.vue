@@ -39,7 +39,7 @@
       </div>
     </el-drawer>
     <el-dialog title="学生选课信息" :visible.sync="info_dialog_open_flag" width="800px" center>
-      <el-table :data="course_election_data" height="500">
+      <el-table :data="course_election_tb_render_data" height="500">
         <el-table-column property="student_no" label="学号"></el-table-column>
         <el-table-column property="class_name" label="班级名称"></el-table-column>
         <el-table-column property="student_name" label="姓名" ></el-table-column>
@@ -47,11 +47,11 @@
         <el-table-column property="contact" label="联系方式"></el-table-column>
       </el-table>
       <div style="margin-top: 20px;width: 100%;text-align: right;font-size: 16px;font-weight: bold">
-        <label style="margin-right: 10px">选课学生总数：{{course_election_data.length}}</label>
+        <label style="margin-right: 10px">选课学生总数：{{election_total}}</label>
       </div>
     </el-dialog>
     <el-dialog title="课程文件" :visible.sync="course_files_dialog_open_flag" width="500px" center>
-      <file-card :file_data_list="attachment_data"></file-card>
+      <file-card :file_data_list="course_file_tb_render_data"></file-card>
     </el-dialog>
   </div>
 </template>
@@ -59,22 +59,34 @@
 <script>
 import {
   mock_attachment_data,
-  mock_course_data, mock_course_election_data, mock_student_contact_data,
+  mock_course_data,
 } from "@/utils/data_mock_util";
 import CourseInfoItem from "@/components/course-info-item";
 import CourseEditDrawer from "@/components/course-edit-drawer";
 import FileCard from "@/components/file-card";
+import {create_course, delete_course, get_course_list, update_course} from "@/api/course_service";
+
 export default {
   name: "course-manage",
   components: {FileCard, CourseEditDrawer, CourseInfoItem},
+  created() {
+    this.$fsloading.initLoading()
+    get_course_list().then(data => {
+      this.course_meta_data = data
+      this.$fsloading.endLoading()
+    }).catch(() => {
+      this.$fsloading.endLoading()
+    })
+  },
   data(){
     return{
       course_meta_data: mock_course_data(),
-      course_election_data: mock_course_election_data(mock_student_contact_data(56)),
+      course_election_tb_render_data: [],
+      election_total: 0,
       drawer_open_flag: false,
       info_dialog_open_flag: false,
       course_files_dialog_open_flag: false,
-      attachment_data: mock_attachment_data()
+      course_file_tb_render_data: mock_attachment_data(),
     }
   },
   methods:{
@@ -89,35 +101,85 @@ export default {
     create_course(){
       this.drawer_open_flag = true
     },
+    // 课程创建或修改
     handle_form_submit(form_data,is_create_mode){
+      this.$fsloading.startLoading('正在提交数据...')
+      this.$refs.course_edit_drawer.do_form_checking()
       if (is_create_mode){
-        alert('创建')
+        create_course(form_data).then(data => {
+          this.course_meta_data.push(data)
+          this.$fsloading.endLoading()
+          this.$message.success('已成功创建课程')
+        }).catch(() => {
+          this.$fsloading.endLoading()
+        })
       }else {
-        this.$refs.course_edit_drawer.do_form_checking()
-        // 当表单通过检查时才可以继续执行下面的逻辑，因此不需要获取检查的返回值，获取不到
-        alert('修改')
+        update_course(form_data).then(() => {
+          // 更新本地数据
+          this.course_meta_data.forEach(course => {
+            if (course.id === form_data.id){
+              course.name = form_data.name
+              course.credit = form_data.credit
+              course.course_period = form_data.course_period
+            }
+          })
+          this.$fsloading.endLoading()
+          this.$message.success('已成功修改课程信息')
+        }).catch(() => {
+          this.$fsloading.endLoading()
+        })
       }
-      alert(form_data.name)
       this.close_drawer()
     },
     handler_course_delete(item){
-      alert(JSON.stringify(item))
+      this.$fsloading.startLoading('正在提交删除...')
+      delete_course(item.id).then(() => {
+        // 更新本地数据
+        let course_data = []
+        this.course_meta_data.forEach(course => {
+          if (course.id !== item.id){
+            course_data.push(course)
+          }
+        })
+        this.course_meta_data = course_data
+      })
     },
     handle_course_election_info(item){
-      console.log(item)
+      // 查找对应的选课数据
+      this.course_meta_data.forEach(course => {
+        if (course.id === item.id){
+          this.course_election_tb_render_data = course.course_election_data
+          this.election_total = this.course_election_tb_render_data.length
+        }
+      })
       this.info_dialog_open_flag = true
     },
     close_drawer(){
       this.drawer_open_flag = false
     },
     handle_course_file_list(item){
-      console.log(item)
+      // 查找对应的课程文件数据
+      this.course_meta_data.forEach(course => {
+        if (course.id === item.id){
+          this.course_file_tb_render_data = course.course_files
+        }
+      })
       this.course_files_dialog_open_flag = true
     },
     clear_form(){
       this.$refs.course_edit_drawer.reset_form()
       this.close_drawer()
     },
+
+    // 发布作业，等于发布一个标题为作业通知的文本通知
+    publish_homework(item){
+      console.log(item)
+    },
+
+    // 发布文件
+    publish_file(item){
+      console.log(item)
+    }
   }
 }
 </script>

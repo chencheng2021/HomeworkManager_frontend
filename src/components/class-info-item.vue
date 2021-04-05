@@ -34,10 +34,10 @@
               </span>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item>
-                    <el-button type="text" @click="members_import_btn_handler">导入成员</el-button>
+                    <el-button type="text" @click="members_import_btn_handler(item)">导入成员</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="text">发布文件</el-button>
+                    <el-button type="text" @click="file_publish_handler(item)">发布文件</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
                     <el-button type="text" @click="check_before_delete(item)">删除班级</el-button>
@@ -116,6 +116,12 @@ export default {
       type: Function,
       default: () => {
         console.error('files list handler is not defined!')
+      }
+    },
+    file_publish_handler: {
+      type: Function,
+      default: () => {
+        console.error('files publish handler is not defined!')
       }
     }
   },
