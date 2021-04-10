@@ -33,6 +33,7 @@ import {
   get_string_checker
 } from "@/utils/checker_util";
 import {form_clear} from "@/provider/common_provider";
+import {obtain_user} from "@/provider/local_storage_provider";
 
 export default {
   name: "class-edit-drawer",
@@ -46,7 +47,7 @@ export default {
   },
   computed: {
     head_teacher_name(){
-      return '陈城'
+      return obtain_user().name
     }
   },
   data(){

@@ -6,11 +6,13 @@
               @selection-change="selection_change_handler">
       <!-- 开启表格的selection模式，提供多选操作 -->
       <el-table-column type="selection" width="45"></el-table-column>
-      <el-table-column property="student_no" label="学号" width="200px"></el-table-column>
-      <el-table-column property="name" label="姓名" width="150px"></el-table-column>
-      <el-table-column property="gender" label="性别" width="50px"></el-table-column>
-      <el-table-column property="class_name" label="班级"></el-table-column>
-      <el-table-column property="contact" label="联系方式"></el-table-column>
+      <el-table-column property="class_code" label="班级编号" v-if="member_type === 'class'"></el-table-column>
+      <el-table-column property="class_name" label="班级名称" v-if="member_type === 'class'"></el-table-column>
+      <el-table-column property="student_no" label="学号" width="200px" v-if="member_type === 'student'"></el-table-column>
+      <el-table-column property="name" label="姓名" width="150px" v-if="member_type === 'student' || member_type === 'parent'"></el-table-column>
+      <el-table-column property="gender" label="性别" width="50px" v-if="member_type === 'student' || member_type === 'parent'"></el-table-column>
+      <el-table-column property="class_name" label="班级" v-if="member_type === 'student'"></el-table-column>
+      <el-table-column property="contact" label="联系方式" v-if="member_type === 'student' || member_type === 'parent'"></el-table-column>
     </el-table>
 
     <el-table :data="table_render_data" stripe v-else
@@ -27,7 +29,7 @@
       <el-table-column property="social_account" label="QQ账号"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
-          <el-button type="text" icon="el-icon-bell" @click="publish_nt_handler" style="margin-right: 10px">发送通知</el-button>
+          <el-button type="text" icon="el-icon-bell" @click="publish_nt_handler(scope.row)" style="margin-right: 10px">发送通知</el-button>
           <el-popconfirm confirm-button-text="确认"
                          cancel-button-text="取消"
                          title="确认将该生移除班级吗？"
@@ -45,6 +47,10 @@
 export default {
   name: "member-table",
   props: {
+    member_type:{
+      type: String,
+      default: "student"
+    },
     table_render_data: {
       type: Array,
       default: () => {

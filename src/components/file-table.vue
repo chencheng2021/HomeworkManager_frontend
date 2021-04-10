@@ -53,6 +53,8 @@
 </template>
 
 <script>
+import {update_file_name} from "@/api/file_service";
+
 export default {
   name: "file-table",
   props: {
@@ -104,9 +106,15 @@ export default {
       this.edit_dialog_open_flag = false
     },
     update_file_name(){
-      this.curr_edit_file.name = this.filename
-      this.handle_edit_dialog_close()
-      this.$message.success('文件名称修改成功')
+      this.$fsloading.startLoading('正在提价更改...')
+      update_file_name(this.curr_edit_file.id).then(() => {
+        this.$fsloading.endLoading()
+        this.curr_edit_file.name = this.filename
+        this.handle_edit_dialog_close()
+        this.$message.success('文件名称修改成功')
+      }).catch(() => {
+        this.$fsloading.endLoading()
+      })
     },
   }
 }

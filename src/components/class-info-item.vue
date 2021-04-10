@@ -1,6 +1,6 @@
 <template>
-<div class="class-item_wrapper">
-  <div v-for="item in class_list_data" :key="item.id">
+  <div class="class-item_wrapper" v-if="class_info_data.length > 0">
+  <div v-for="item in class_info_data" :key="item.id">
     <el-card class="class-card_wrapper">
       <div class="class-info_content_wrapper" >
         <div class="class-info_wrapper">
@@ -40,7 +40,11 @@
                     <el-button type="text" @click="file_publish_handler(item)">发布文件</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-button type="text" @click="check_before_delete(item)">删除班级</el-button>
+                    <el-popconfirm title="确认删除该班级吗?" confirm-button-text="确认"
+                                   @confirm="check_before_delete(item)"
+                                   icon="el-icon-info" icon-color="red">
+                      <el-button slot="reference" type="text" >删除班级</el-button>
+                    </el-popconfirm>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -75,12 +79,17 @@
     </el-card>
   </div>
 </div>
+  <div v-else>
+    <empty-data></empty-data>
+  </div>
 </template>
 
 <script>
 
+import EmptyData from "@/components/empty-data";
 export default {
   name: "class-info-item",
+  components: {EmptyData},
   props:{
     class_info_data:{
       type: Array,
@@ -139,7 +148,7 @@ export default {
       }
     },
     on_contact_click(item){
-      if (item.total_student_num === 0){
+      if (item.member_data.length === 0){
         this.$message.info('该班级暂无学生加入，没有成员数据')
       }else {
         // 交由父组件去进行处理

@@ -3,17 +3,17 @@
  * @date 2021-04-05 16:08
  * @description     用户服务api
  */
-import {encrypt} from "@/provider/common_provider";
+//import {encrypt} from "@/provider/common_provider";
 import request from '@/provider/http_base'
 import qs from 'qs'
 
 export function login(username,password){
     // 对password进行base64加密
-    let pass = encrypt(password)
+    //let pass = encrypt(password)
     // 如果后台需要以form-data的形式处理请求数据，必须使用qs进行处理封装
     let params = qs.stringify({
         username: username,
-        password: pass
+        password: password
     })
     return request({
         url: '/login',

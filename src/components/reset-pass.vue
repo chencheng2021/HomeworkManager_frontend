@@ -52,7 +52,7 @@ export default {
       let phone = this.reset_pass_form.phone
       if (phone !== ''){
         if ((/^1[3456789]\d{9}$/.test(phone))){
-          send(phone).then( () => {
+          send(phone,"updatePass").then( () => {
             this.$message.success('已成功向手机号'+this.reset_pass_form.phone+'发送短信')
           }).catch( () => {} )
         }else {
@@ -68,7 +68,7 @@ export default {
         if (valid){
           this.$fsloading.startLoading('正在提交修改...')
           // 验证短信验证码
-          verify(this.reset_pass_form.phone,this.reset_pass_form.verify_code).then(() => {
+          verify(this.reset_pass_form.phone,this.reset_pass_form.verify_code,"updatePass").then(() => {
             update_pass(this.reset_pass_form).then(() => {
               this.$fsloading.endLoading()
               this.$emit('success')

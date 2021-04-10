@@ -5,8 +5,8 @@
  */
 
 const getter = {
-    user: state => state.user,
-    teacher_no: state => state.user.teacher_no
+    teacher_name: state => state.user.teacher_name,
+    teacher_no: state => state.user.teacher_no,
 }
 
 export default getter

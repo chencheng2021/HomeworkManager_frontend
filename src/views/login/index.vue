@@ -69,6 +69,8 @@ import {get_string_checker} from "@/utils/checker_util";
 import {obtain, save} from "@/provider/local_storage_provider";
 import ResetPass from "@/components/reset-pass";
 import {login} from "@/api/user_service";
+import {set_authorization} from "@/provider/http_base";
+import {store_token} from "@/utils/authenticate_util";
 
 const remember_key = 'UH4KJ5YKJ5AS6D6FK7JH7AE-US7AHD'
 
@@ -119,13 +121,13 @@ export default {
         if (valid){
           this.$fsloading.startLoading('登录验证中...')
           login(this.loginForm.username,this.loginForm.password).then( resp => {
+            this.$store.dispatch( 'ProcessingLogin', resp)
+            // 保存token信息
+            set_authorization(resp.token)
+            store_token(resp.token)
             this.$fsloading.endLoading()
-            let token = resp.token
-            if (token){
-              this.$store.dispatch( 'process_login', resp.theacher_info, token).then(() => {
-                this.$fsloading.endLoading()
-              })
-            }
+            // 在then内使用this跳转无效
+            this.$router.push('/')
           }).catch( () =>{
             this.$fsloading.endLoading()
           })

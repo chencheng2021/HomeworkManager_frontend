@@ -46,18 +46,16 @@ export default {
     handle_remove(){
       this.selected = false
     },
-    handle_upload_success(response){
+    handle_upload_success(file_url,file){
       this.$message.success('已成功上传所选文件')
       // 通知父组件，让父组件做出相应操作
-      // 这里的response就是服务端返回的文件的id，文件名称以及文件url
-      // element-ui会将返回的数据取出然后再回调方法
-      this.$emit('upload-success',response)
+      // 这里的file_url就是服务端返回的文件url
+      this.$emit('upload-success',file.name,file_url)
       // 清空已选文件缓存
       this.file_list_upload = []
       this.selected = false
     },
     handle_upload_fail(){
-      this.selected = false
       this.$message.error('文件上传失败，请重试！')
     }
   }

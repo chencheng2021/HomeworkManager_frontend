@@ -1,7 +1,6 @@
 
-import {set_authorization} from "@/provider/http_base";
-import {store_token} from "@/utils/authenticate_util";
-import {obtain, save} from "@/provider/local_storage_provider";
+
+import {obtain, save, save_user} from "@/provider/local_storage_provider";
 
 
 const user = {
@@ -16,14 +15,14 @@ const user = {
 
     mutations: {
         SET_USER:(state,user) => {
-            state.teacher_no = user.teacher_no
-            state.name = user.name
+            state.teacher_no = user.username
+            state.name = user.teacher_name
             state.contact = user.contact
-            state.gender = user.gender
+            state.gender = user.gender === 1 ? '男' : '女'
             state.address = user.address
             state.job_title = user.job_title
             // 将用户数据保存到localstorage
-            save(user.teacher_no,user,true)
+            save_user(user.username,state)
         },
         SET_CONTACT:(state,phone) => {
             state.contact = phone
@@ -36,15 +35,11 @@ const user = {
 
     actions: {
         // 登录成功后需要通过该方法保存用户信息以及token
-        process_login({commit},user,token){
-            commit('SET_USER',user)
-            // 保存token
-            set_authorization(token)
-            store_token(token)
-            Promise.resolve().then()
+        ProcessingLogin({commit},data){
+            commit('SET_USER',data.teacher_info)
         },
 
-        update_contact({commit}, phone){
+        UpdateContact({commit}, phone){
             commit('SET_CONTACT', phone)
         }
 

@@ -10,7 +10,7 @@
       <div style="float:right;width: 300px;">
         <el-dropdown trigger="click">
           <label style="margin-right: 50px;font-size: 18px;color: #ffffff">
-            {{time_desc}}<strong>陈城</strong>老师
+            {{time_desc}}<strong>{{user_form.name}}</strong>老师
             <i class="el-icon-arrow-down" style="cursor: pointer"></i>
           </label>
           <el-dropdown-menu slot="dropdown">
@@ -73,9 +73,13 @@ import {get_code_checker, get_phone_checker} from "@/utils/checker_util";
 import {send, verify} from "@/api/sms_service";
 import {logout, update_phone} from "@/api/user_service";
 import {clear_token} from "@/utils/authenticate_util";
+import {obtain_user, remove} from "@/provider/local_storage_provider";
 
 export default {
   name: "Header",
+  created() {
+    this.user_form = obtain_user()
+  },
   computed:{
     time_desc(){
       let now = new Date()
@@ -89,17 +93,18 @@ export default {
       }else {
         return '晚上好，'
       }
-    }
+    },
+
   },
   data() {
     return {
       user_form: {
-        teacher_no: '1625110164',
-        name: '陈城',
-        gender: '男',
-        contact: '18945322322',
-        address: '福建省厦门市华侨大学',
-        job_title: '讲师'
+        teacher_no: 0,
+        name: '',
+        contact: '',
+        gender: '',
+        address: '',
+        job_title: ''
       },
       update_phone_form: {
         phone: '',
@@ -118,6 +123,7 @@ export default {
       logout().then(() => {
         // 清除本地的登录凭证
         clear_token()
+        remove(this.user_form.teacher_no)
         // 回到登录页
         this.$router.push(base_path + '/login')
       }).catch(() => {})
@@ -133,7 +139,7 @@ export default {
       if (phone !== ''){
         if (phone !== this.user_form.contact){
           if ((/^1[3456789]\d{9}$/.test(phone))){
-            send(phone).then( () => {
+            send(phone,"updatePhone").then( () => {
               this.$message.success('已成功向手机号'+this.update_phone_form.phone.phone+'发送短信')
             }).catch( () => {} )
           }else {
@@ -151,7 +157,7 @@ export default {
       this.$refs.update_phone_form.validate( valid => {
         if (valid){
           let phone = this.update_phone_form.phone;
-          verify(phone, this.update_phone_form.verify_code).then(() => {
+          verify(phone, this.update_phone_form.verify_code,"updatePhone").then(() => {
             update_phone(this.update_phone_form).then( () => {
               // 更新当前绑定的渲染数据
               this.user_form.contact = phone

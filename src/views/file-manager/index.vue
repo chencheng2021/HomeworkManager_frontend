@@ -37,6 +37,7 @@ import {deeply_copy_obj} from "@/provider/common_provider";
 import FileTable from "@/components/file-table";
 import CommonPagination from "@/components/pagination";
 import FileUploadBtn from "@/components/file-upload-btn";
+import {delete_file} from "@/api/file_service";
 
 export default {
   name: "file-manager",
@@ -50,14 +51,19 @@ export default {
   },
   methods: {
     handle_file_delete(file){
-      console.log(file)
-      // 将需要删除的数据过滤掉
-      // 重新赋值并渲染数据
-      this.file_meta_data = this.file_meta_data.filter(item => {
-        return item.id !== file.id
+      this.$fsloading.startLoading('正在提交删除...')
+      delete_file(file.id).then(() => {
+        this.$fsloading.endLoading()
+        // 将需要删除的数据过滤掉
+        // 重新赋值并渲染数据
+        this.file_meta_data = this.file_meta_data.filter(item => {
+          return item.id !== file.id
+        })
+        this.file_table_render_data = deeply_copy_obj(this.file_meta_data)
+        this.$message.success('已成功删除该文件')
+      }).catch(() => {
+        this.$fsloading.endLoading()
       })
-      this.file_table_render_data = deeply_copy_obj(this.file_meta_data)
-      this.$message.success('已成功删除该文件')
     },
     refresh_meta_data(){
       this.file_meta_data = mock_file_data(10)
@@ -66,8 +72,10 @@ export default {
     handle_upload_dialog_open(){
       this.upload_dialog_open_flag = true
     },
-    handle_upload_dialog_close(){
+    handle_upload_dialog_close(file){
+      console.log(file)
       this.upload_dialog_open_flag = false
+      this.$message.success('已成功上传文件')
     },
 
   }

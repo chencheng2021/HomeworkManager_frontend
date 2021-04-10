@@ -8,21 +8,23 @@
 import request from '@/provider/http_base'
 
 
-export function send(phone){
+export function send(phone,type){
     return request({
         url: '/sms/send',
         data: {
-            phone: phone
+            phone: phone,
+            type: type
         }
     })
 }
 
-export function verify(phone,code){
+export function verify(phone,code,type){
     return request({
         url: '/sms/verify',
         data: {
             phone: phone,
-            code: code
+            code: code,
+            type: type
         }
     })
 }

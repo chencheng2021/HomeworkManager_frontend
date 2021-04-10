@@ -17,22 +17,23 @@ export function get_file_page(page_size,page_num){
     })
 }
 
-export function publish_file(file_id,publish_id){
+export function publish_file(publish_id,file){
     return request({
         url: '/file/publish',
         data: {
-            file_id: file_id,
-            publish_id: publish_id
+            publish_id: publish_id,
+            name: file.name,
+            url: file.url,
         }
     })
 }
 
-export function update_file_name(file_id,file_name){
+export function update_file_name(file_id,filename){
     return request({
         url: '/file/update',
         data: {
             file_id: file_id,
-            file_name: file_name
+            filename: filename
         }
     })
 }

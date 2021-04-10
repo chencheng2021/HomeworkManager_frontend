@@ -34,6 +34,7 @@ export function update_class_info(class_update_form){
 }
 
 export function add_class_member(class_id,member_list){
+    console.log(member_list)
     return request({
         url: '/class/member/add',
         data: {

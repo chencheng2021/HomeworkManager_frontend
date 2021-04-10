@@ -17,11 +17,13 @@
         </div>
       </div>
     </div>
-    <course-info-item
+    <course-info-item ref="course_info"
         :course_info_data="course_meta_data"
         :course_election_btn_handler="handle_course_election_info"
         :course_files_list_handler="handle_course_file_list"
         :delete_btn_handler="handler_course_delete"
+        :file_publish_handler="publish_file"
+        :homework_publish_handler="publish_homework"
         :edit_btn_handler="handle_course_info_edit">
     </course-info-item>
     <el-drawer title="创建班级" size="500px"
@@ -47,7 +49,7 @@
         <el-table-column property="contact" label="联系方式"></el-table-column>
       </el-table>
       <div style="margin-top: 20px;width: 100%;text-align: right;font-size: 16px;font-weight: bold">
-        <label style="margin-right: 10px">选课学生总数：{{election_total}}</label>
+        <label style="margin-right: 10px">选课学生总数：{{course_election_tb_render_data.length}}</label>
       </div>
     </el-dialog>
     <el-dialog title="课程文件" :visible.sync="course_files_dialog_open_flag" width="500px" center>
@@ -57,14 +59,13 @@
 </template>
 
 <script>
-import {
-  mock_attachment_data,
-  mock_course_data,
-} from "@/utils/data_mock_util";
+
 import CourseInfoItem from "@/components/course-info-item";
 import CourseEditDrawer from "@/components/course-edit-drawer";
 import FileCard from "@/components/file-card";
 import {create_course, delete_course, get_course_list, update_course} from "@/api/course_service";
+import {notification_create_form} from "@/api/data_forms";
+import {publish_notification} from "@/api/notification_service";
 
 export default {
   name: "course-manage",
@@ -80,16 +81,27 @@ export default {
   },
   data(){
     return{
-      course_meta_data: mock_course_data(),
+      course_meta_data: [],
       course_election_tb_render_data: [],
       election_total: 0,
       drawer_open_flag: false,
       info_dialog_open_flag: false,
       course_files_dialog_open_flag: false,
-      course_file_tb_render_data: mock_attachment_data(),
+      course_file_tb_render_data: [],
     }
   },
   methods:{
+
+    refresh_data(){
+      get_course_list().then((data) => {
+        this.course_meta_data = data
+        this.$fsloading.endLoading()
+      }).catch(() => {
+        this.$fsloading.endLoading()
+        location.reload()
+      })
+    },
+
     handle_course_info_edit(origin){
       this.drawer_open_flag = true
       // 传递数据给子组件进行修改
@@ -106,9 +118,8 @@ export default {
       this.$fsloading.startLoading('正在提交数据...')
       this.$refs.course_edit_drawer.do_form_checking()
       if (is_create_mode){
-        create_course(form_data).then(data => {
-          this.course_meta_data.push(data)
-          this.$fsloading.endLoading()
+        create_course(form_data).then(() => {
+          this.refresh_data()
           this.$message.success('已成功创建课程')
         }).catch(() => {
           this.$fsloading.endLoading()
@@ -142,15 +153,17 @@ export default {
           }
         })
         this.course_meta_data = course_data
+        this.$fsloading.endLoading()
+        this.$message.success('已成功删除课程')
+      }).catch(() => {
+        this.$fsloading.endLoading()
       })
     },
     handle_course_election_info(item){
-      // 查找对应的选课数据
-      this.course_meta_data.forEach(course => {
-        if (course.id === item.id){
-          this.course_election_tb_render_data = course.course_election_data
-          this.election_total = this.course_election_tb_render_data.length
-        }
+      this.course_election_tb_render_data = item.course_election_data
+      // 匹配性别描述
+      this.course_election_tb_render_data.forEach(data=>{
+        data.gender = data.gender == 1 ? '男' : '女'
       })
       this.info_dialog_open_flag = true
     },
@@ -173,12 +186,35 @@ export default {
 
     // 发布作业，等于发布一个标题为作业通知的文本通知
     publish_homework(item){
-      console.log(item)
+      let data_form = notification_create_form()
+      data_form.attachments = []
+      data_form.contact_data_list = []
+      data_form.type = 0
+      data_form.content = item.content
+      data_form.title = item.title
+      data_form.confirmable = item.confirmable
+      data_form.member_type = 'course'
+      let contact_item = {
+        publish_id: item.id,
+        name: '',
+        contact: ''
+      }
+      data_form.contact_data_list.push(contact_item)
+      this.$fsloading.startLoading('正在发布...')
+      publish_notification(data_form).then(() => {
+        this.$refs.course_info.cancel_publish_homework()
+        this.$fsloading.endLoading()
+        this.$message.success('已成功发布作业')
+      }).catch(() => {
+        this.$fsloading.endLoading()
+      })
     },
 
     // 发布文件
     publish_file(item){
-      console.log(item)
+      this.course_meta_data.course_files.push(item)
+      this.$refs.course_info. cancel_upload_file()
+      this.$message.success('已成功发布文件')
     }
   }
 }

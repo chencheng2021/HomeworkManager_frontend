@@ -40,7 +40,7 @@
             :form_submit_handler="handle_form_submit"></class-edit-drawer>
       </div>
     </el-drawer>
-    <el-dialog :title="dialog_title" :visible.sync="info_dialog_open_flag" width="800px" center
+    <el-dialog :title="dialog_title" :visible.sync="info_dialog_open_flag"  center width="900px"
                @close="() => {this.checkout_to_student_info();this.info_dialog_open_flag = false}">
       <el-table :data="members_tb_render_data" height="500" v-if="show_student_info">
         <el-table-column property="student_no" label="学号"></el-table-column>
@@ -66,16 +66,16 @@
                :close-on-click-modal="false">
       <el-table :data="student_import_data" height="500">
         <el-table-column type="index" label="序号"></el-table-column>
-        <el-table-column property="student_no" label="学号"></el-table-column>
+        <el-table-column property="studentNo" label="学号"></el-table-column>
         <el-table-column property="name" label="姓名" ></el-table-column>
         <el-table-column property="gender" label="性别" width="100px"></el-table-column>
         <el-table-column property="contact" label="联系方式"></el-table-column>
         <el-table-column property="email" label="邮箱"></el-table-column>
-        <el-table-column property="social_account" label="QQ号"></el-table-column>
-        <el-table-column property="father_name" label="父亲"></el-table-column>
-        <el-table-column property="mother_name" label="母亲"></el-table-column>
-        <el-table-column property="father_contact" label="父亲手机"></el-table-column>
-        <el-table-column property="mother_contact" label="母亲手机"></el-table-column>
+        <el-table-column property="socialAccount" label="QQ号"></el-table-column>
+        <el-table-column property="fatherName" label="父亲"></el-table-column>
+        <el-table-column property="motherName" label="母亲"></el-table-column>
+        <el-table-column property="fatherContact" label="父亲手机"></el-table-column>
+        <el-table-column property="motherContact" label="母亲手机"></el-table-column>
       </el-table>
       <div style="margin-top: 20px;width: 100%;text-align: center;display: flex;justify-content: center">
         <el-upload action="" :on-exceed="() => {this.$message.warning('单次只能上传一个文件')}"
@@ -105,24 +105,20 @@
 <script>
 import ClassInfoItem from "@/components/class-info-item";
 import ClassEditDrawer from "@/components/class-edit-drawer";
-import {
-  mock_attachment_data,
-  mock_class_info_data,
-  mock_parent_contact_data,
-  mock_student_contact_data
-} from "@/utils/data_mock_util";
 import {import_file} from "@/vendor/file_json_reader";
 import FileCard from "@/components/file-card";
 import {add_class_member, create_class, delete_class, get_class_list, update_class_info} from "@/api/class_service";
 import {validate_student_imported_data} from "@/utils/checker_util";
 import FileUploadBtn from "@/components/file-upload-btn";
 import {publish_file} from "@/api/file_service";
+
 export default {
   name: "class-manage",
   components: {FileUploadBtn, FileCard, ClassEditDrawer, ClassInfoItem},
   created() {
     this.$fsloading.initLoading()
     get_class_list().then(data => {
+      console.log(data)
       this.class_meta_data = data
       this.$fsloading.endLoading()
     }).catch(() => {
@@ -131,13 +127,13 @@ export default {
   },
   data(){
     return{
-      class_meta_data: mock_class_info_data(),
+      class_meta_data: [],
       // 班级成员的表格渲染数据，选择打开不同班级的成员信息时那么数据也不一样
-      members_tb_render_data:[],
+      members_tb_render_data: [],
       // 班级学生的家长信息
-      student_parent_info: mock_parent_contact_data(mock_student_contact_data()),
+      student_parent_info: [],
       // 班级上传文件的表格渲染数据
-      attachment_tb_render_data: mock_attachment_data(),
+      attachment_tb_render_data: [],
       dialog_title: '班级学生信息',
       show_student_info: true,
       drawer_open_flag: false,
@@ -153,6 +149,17 @@ export default {
     }
   },
   methods:{
+
+    reload_class_meta_data(){
+      get_class_list().then((data) => {
+        this.class_meta_data = data
+        this.$fsloading.endLoading()
+      }).catch(() => {
+        this.$fsloading.endLoading()
+        location.reload()
+      })
+    },
+
     handle_class_info_edit(origin){
       this.drawer_open_flag = true
       // 传递数据给子组件进行修改
@@ -169,10 +176,10 @@ export default {
       this.$refs.class_edit_drawer.do_form_checking()
       this.$fsloading.startLoading('正在提交数据...')
       if (is_create_mode){
+
         // 班级创建
-        create_class(form_data).then( data => {
-          this.class_meta_data.push(data)
-          this.$fsloading.endLoading()
+        create_class(form_data).then( () => {
+          this.reload_class_meta_data()
           this.$message.success('已成功创建新的班级')
         }).catch(() => {
           this.$fsloading.endLoading()
@@ -212,17 +219,25 @@ export default {
       })
     },
     handle_members_info(item){
-      this.class_meta_data.forEach( _class => {
-        if (_class.id === item.id){
-          this.members_tb_render_data = _class.member_data
-        }
+      // 绑定学生数据
+      this.members_tb_render_data = item.member_data
+      // 将性别的0和1替换为文字
+      this.members_tb_render_data.forEach(member => {
+        member.gender = member.gender == 1 ? '男生' : '女生'
+      })
+      // 绑定学生家长数据
+      this.student_parent_info = item.member_parent_data
+      this.student_parent_info.forEach(p=>{
+        p.gender = p.gender == 1 ? '父亲' : '母亲'
       })
       this.info_dialog_open_flag = true
     },
+
     handle_members_import(item){
       this.curr_operate_class_id = item.id
       this.import_dialog_open_flag = true
     },
+
     handle_change_when_importing(file){
       this.file_temp = file.raw
       if(this.file_temp){
@@ -257,7 +272,7 @@ export default {
           })
           this.$fsloading.startLoading('正在导入...')
           add_class_member(this.curr_operate_class_id,this.student_import_data).then(() => {
-            this.$fsloading.endLoading()
+            this.reload_class_meta_data()
             this.$message.success('已成功将所有学生注册到班级中')
             this.handle_import_dialog_close()
           }).catch(() => {
@@ -280,11 +295,7 @@ export default {
       this.import_dialog_open_flag = false
     },
     handle_class_file_list(item){
-      this.class_meta_data.forEach( _class => {
-        if (_class.id === item.id){
-          this.attachment_tb_render_data = _class.class_files
-        }
-      })
+      this.attachment_tb_render_data = item.class_files
       this.class_files_dialog_open_flag = true
     },
     clear_form(){
@@ -302,10 +313,16 @@ export default {
       this.curr_operate_class_id = item.id
       this.upload_dialog_open_flag = true
     },
-    handle_upload_dialog_close(file){
+    handle_upload_dialog_close(file_name,file_url){
+      // 文件上传成功后需要发布文件到班级中
+      let file = {
+        name: file_name,
+        url: file_url
+      }
       this.upload_dialog_open_flag = false
       this.$fsloading.startLoading('正在发布文件...')
-      publish_file(file.id,this.curr_operate_class_id).then(() => {
+      publish_file(this.curr_operate_class_id,file).then(() => {
+        console.log(file)
         // 更新本地数据
         this.class_meta_data.forEach(data => {
           if (data.id === this.curr_operate_class_id){

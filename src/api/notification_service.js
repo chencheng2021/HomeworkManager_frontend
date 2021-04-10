@@ -30,17 +30,14 @@ export function publish_notification(notification_publish_form){
             confirmable: notification_publish_form.confirmable,
             pidList: notification_publish_form.pidList,
             member_type: notification_publish_form.member_type,
-            attachment: notification_publish_form.attachment
+            attachments: notification_publish_form.attachment
         }
     })
 }
 
-export function notify_member(notification_id, member_info_list){
+export function notify_member(data_form){
     return request({
         url: '/notification/notify',
-        data: {
-            notification_id: notification_id,
-            member_info_list: member_info_list
-        }
+        data: data_form
     })
 }

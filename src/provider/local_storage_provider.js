@@ -3,10 +3,12 @@
  * @date 2021-04-04 01:29
  * @description
  */
+import {encrypt} from "@/provider/common_provider";
 
 const provider = window.localStorage
 
 const key_saver = 'key_saver'
+const user_key_saver = encrypt('user')
 
 export function save_collect(collect_key,item){
     let collect = obtain_collect(collect_key)
@@ -56,6 +58,16 @@ export function save(key,val,is_obj){
         val = JSON.stringify(val)
     }
     provider.setItem(key,val)
+}
+
+export function save_user(key,user){
+    save(key,user,true)
+    save(user_key_saver,key)
+}
+
+export function obtain_user(){
+    let user_key = obtain(user_key_saver,false);
+    return obtain(user_key,true)
 }
 
 export function save_key(key){

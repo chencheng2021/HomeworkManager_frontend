@@ -7,6 +7,7 @@ import {base_path} from "@/provider/common_provider"
 import router from './index'
 import { verify_token} from "@/utils/authenticate_util";
 
+
 // 目前只有登录页时公共页面
 const login_path = base_path + '/login'
 
@@ -20,14 +21,19 @@ const mode = dev
 
 router.beforeEach((to, from, next) => {
     if (mode === prod){
-        if (to.path === login_path){
-            next()
-        }else {
-            if (verify_token()){
-                next()
+        if (verify_token()){
+            if (to.path === login_path){
+                next('/')
             }else {
+                next()
+            }
+        }else {
+            if (to.path === login_path){
+                next()
+            }else{
                 next({path: login_path})
             }
+
         }
     }else if (mode === dev){
         // dev环境直接放行

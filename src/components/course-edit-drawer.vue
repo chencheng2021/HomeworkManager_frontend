@@ -12,10 +12,11 @@
         </el-form-item>
         <el-form-item label="课程学分" prop="credit" >
           <!--使用数值校验时，需要使用v-model.number来进行绑定-->
-          <el-input v-model.number="course_data_form.credit"  disabled></el-input>
+          <el-input v-model.number="course_data_form.credit" v-if="is_create_mode"></el-input>
+          <el-input v-model.number="course_data_form.credit" v-else></el-input>
         </el-form-item>
         <el-form-item label="课程周期(周)" prop="course_period">
-          <el-input v-model="course_data_form.course_period"  placeholder="请输入课程上课周期（数值）"></el-input>
+          <el-input v-model.number="course_data_form.course_period"  placeholder="请输入课程上课周期（数值）"></el-input>
         </el-form-item>
       </el-form>
     </div>
@@ -78,11 +79,15 @@ export default {
       // 每次提交表单前都需要将mode修改为创建模式
       this.$refs['course_data_form'].validate(valid => {
         if (valid){
-          // 当前表单需要先在当前组件进行数据校验才可以提交给父组件进行最终的提交操作
-          // 父组件无法对表单数据进行校验，因为该校验需要使用this来获取form对象
-          this.form_submit_handler(this.course_data_form,this.is_create_mode)
-          // 每次提交完表单后都必须将mode重置
-          this.is_create_mode = true
+          if (this.course_data_form.credit > 0){
+            // 当前表单需要先在当前组件进行数据校验才可以提交给父组件进行最终的提交操作
+            // 父组件无法对表单数据进行校验，因为该校验需要使用this来获取form对象
+            this.form_submit_handler(this.course_data_form,this.is_create_mode)
+            // 每次提交完表单后都必须将mode重置
+            this.is_create_mode = true
+          }else {
+            this.$message.warning('课程学分必须大于0')
+          }
         }else {
           return false
         }

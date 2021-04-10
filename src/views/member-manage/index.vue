@@ -81,6 +81,8 @@ import {deeply_copy_obj, form_check} from "@/provider/common_provider";
 import MemberTable from "@/components/member-table";
 import {filter_by_class, filter_by_name, filter_by_student_no} from "@/provider/data_filter_delegator";
 import {get_max_length_checker, get_string_checker} from "@/utils/checker_util";
+import {publish_notification} from "@/api/notification_service";
+import {delete_member} from "@/api/member_service";
 
 export default {
   name: "member-manager",
@@ -112,7 +114,7 @@ export default {
         type: 0,
         // 只能发送不需确认的通知
         confirmable: false,
-        pidList: [],
+        contact_data_list: [],
         member_type: 'student',
         attachment: []
       },
@@ -127,6 +129,7 @@ export default {
         ],
       },
       nt_dialog_open_flag: false,
+      selected_student: null
     }
   },
   methods: {
@@ -154,7 +157,8 @@ export default {
         case 'name': return '学生姓名'
       }
     },
-    handle_dialog_open() {
+    handle_dialog_open(item) {
+      this.selected_student = item
       this.nt_dialog_open_flag = true
     },
     handle_dialog_close() {
@@ -164,17 +168,35 @@ export default {
     handle_nt_publish(){
       if (form_check(this,'text_notification_form')){
         let data = deeply_copy_obj(this.text_notification_form)
-        console.log(data)
-        this.handle_dialog_close()
-        this.$message.success('已成功发布通知')
+        data.contact_data_list = {
+          publish_id: this.selected_student.student_no,
+          name: '',
+          contact: ''
+        }
+        this.$fsloading.startLoading('正在发布消息...')
+        publish_notification(data).then(() => {
+          this.$fsloading.endLoading()
+          this.handle_dialog_close()
+          this.$message.success('已成功发布通知')
+        }).catch(() => {
+          this.$fsloading.endLoading()
+        })
       }
 
     },
     handle_member_remove(member){
-      this.student_info_meta_data = this.student_info_meta_data.filter( item => {
-        return item.student_no !== member.student_no
+      this.$fsloading.startLoading('正在删除...')
+      delete_member(member.student_no).then(() => {
+        this.$fsloading.endLoading()
+        // 移除本地数据
+        this.student_info_meta_data = this.student_info_meta_data.filter( item => {
+          return item.student_no !== member.student_no
+        })
+        this.table_render_data = deeply_copy_obj(this.student_info_meta_data)
+        this.$message.success('已成功将成员移出班级')
+      }).catch(() => {
+        this.$fsloading.endLoading()
       })
-      this.table_render_data = deeply_copy_obj(this.student_info_meta_data)
     },
     refresh_meta_data(){
       this.student_info_meta_data = mock_student_contact_data(10)

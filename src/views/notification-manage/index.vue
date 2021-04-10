@@ -161,15 +161,16 @@
       </div>
     </el-drawer>
     <el-dialog :title="nt_obj_dialog_title" :visible.sync="nt_obj_dialog_open_flag"
-               :close-on-press-escape="false"
+               :close-on-press-escape="false" center
                :show-close="false" :close-on-click-modal="false">
       <member-table
           ref="selection_table"
+          :member_type="notification_form.member_type"
           :selection_mode="true" :table_render_data="student_table_render_data"
           :selection_change_handler="handle_nt_obj_selection"></member-table>
       <div style="margin-top: 30px;text-align: center">
         <el-button type="success" style="width: 120px" round @click="cache_nt_obj_id">确认</el-button>
-        <el-button type="cancel" style="width: 120px" round @click="() => {this.nt_obj_dialog_open_flag = false}">取消</el-button>
+        <el-button type="cancel" style="width: 120px" round @click="handle_dialog_close">取消</el-button>
       </div>
     </el-dialog>
     <el-dialog :visible="file_upload_dialog_open" center
@@ -197,6 +198,7 @@ import {deeply_copy_obj, form_check, form_clear} from "@/provider/common_provide
 import {filter_by_content, filter_by_title} from "@/provider/data_filter_delegator";
 import MemberTable from "@/components/member-table";
 import FileUploadBtn from "@/components/file-upload-btn";
+import {notify_member, publish_notification} from "@/api/notification_service";
 
 export default {
   name: "notification-manage",
@@ -231,11 +233,11 @@ export default {
         type: 0,
         confirmable: false,
         // 发布对象的id集合，发布对象可以是班级，学生或家长
-        pidList: [],
+        contact_data_list: [],
         member_type: '',
         // 如果是附件通知，还可以上传附件，如果选择了附件通知但是没有上传附件，
         // 那么系统会自动将通知类型修改为文本通知
-        attachment:[]
+        attachments:[]
       },
       notification_form_rules:{
         title: [
@@ -262,8 +264,11 @@ export default {
         {label: '通知学生', val: 'student'},
         {label: '通知家长', val: 'parent'}
       ],
+      // 选择通知班级时的表格渲染数据
       class_table_render_data:mock_class_info_data(3),
+      // 选择通知学生时的表格渲染数据
       student_table_render_data: mock_student_contact_data(56),
+      // 选择通知家长时的表格渲染数据
       parent_table_render_data: mock_parent_contact_data(mock_student_contact_data(56)),
       nt_obj_dialog_open_flag: false,
       nt_obj_dialog_title: '',
@@ -271,8 +276,8 @@ export default {
       nt_obj_list: [],
       // 在表格进行多选时，点击确认按钮后，数据会保存到该中间数组中
       // 当用户最终确定发布通知时，该中间数组的数据才会被复制到notification_form.pidList中
-      temp_selected_pid: [],
-      file_upload_dialog_open: false
+      temp_selected_member: [],
+      file_upload_dialog_open: false,
     }
   },
   methods: {
@@ -311,12 +316,20 @@ export default {
           if (action === 'confirm'){
             instance.confirmButtonLoading = true
             instance.confirmButtonText = '短信发送中...'
-            setTimeout(() => {
+            // 封装接口数据
+            let data_form = {
+              notification_id: item.id,
+              member_type: item.member_type,
+              notifyInfos: []
+              // todo 这里需要获取到通知成员的数据
+            }
+            notify_member(data_form).then(() => {
               done()
-              setTimeout(() => {
-                instance.confirmButtonLoading = false;
-              }, 300);
-            },1000)
+              instance.confirmButtonLoading = false;
+            }).catch(() => {
+              done()
+              instance.confirmButtonLoading = false;
+            })
           }else {
             done()
           }
@@ -355,17 +368,31 @@ export default {
       if (form_check(this,'notification_form')){
         // 检查通知对象的设置
         if (this.notification_form.member_type !== ''){
-          if (this.temp_selected_pid.length !== 0){
+          if (this.temp_selected_member.length !== 0){
             // 将保存发布对象id的中间数组中的值copy到表单的pidList中
             // 每次为pidList增加值时，需要先重置
-            this.notification_form.pidList = []
-            this.temp_selected_pid.forEach( id => {
-              this.notification_form.pidList.push(id)
+            this.notification_form.contact_data_list = []
+            this.temp_selected_member.forEach( item => {
+              this.notification_form.contact_data_list.push(item)
             })
             let data = deeply_copy_obj(this.notification_form)
-            console.log(data)
-            this.create_drawer_open_flag  = false
-            this.$message.success('已成功发布通知')
+            if (data.attachments.length === 0){
+              if (data.type === 1){
+                // 如果选择了附件通知，但是没有上传文件，此时将通知类型修改为文本通知
+                data.type = 0
+              }
+            }
+            // 调用api
+            this.$fsloading.startLoading('正在发布通知...')
+            publish_notification(data).then(resp => {
+              this.notification_meta_data.push(resp)
+              this.$fsloading.endLoading()
+              this.create_drawer_open_flag  = false
+              this.$message.success('已成功发布通知')
+            }).catch(() => {
+              this.$fsloading.endLoading()
+            })
+
           }else {
             // 弹出选择通知对象的对话框
             this.handle_dialog_open()
@@ -396,6 +423,7 @@ export default {
       this.temp_selected_pid = []
       this.nt_obj_dialog_open_flag = true
     },
+    // 关闭选择通知对象的对话框
     handle_dialog_close(){
       // 调用子组件的方法，清除表格中已选数据的记录
       this.$refs.selection_table.clear_selection()
@@ -407,12 +435,30 @@ export default {
     cache_nt_obj_id(){
       if (this.nt_obj_list.length !== 0){
         this.nt_obj_list.forEach( item => {
-          let id = item.id
-          if (typeof id === 'undefined'){
-            // 学生的id字段名是student_no
-            id = item.student_no
+          let id = 0
+          let name = ''
+          let contact = ''
+          let type = this.notification_form.member_type
+          let publish_item = {
+            publish_id: 0,
+            name: '',
+            contact: ''
           }
-          this.temp_selected_pid.push(id)
+          if (type === 'student'){
+            id = item.student_no
+            name = item.name
+            contact = item.contact
+          }else if (type === 'parent'){
+            id = item.parent_id
+            name = item.name
+            contact = item.contact
+          }else{
+            id = item.class_id
+          }
+          publish_item.publish_id = id
+          publish_item.name = name
+          publish_item.contact = contact
+          this.temp_selected_member.push(publish_item)
         })
         this.handle_dialog_close()
       }else {
@@ -420,7 +466,7 @@ export default {
       }
     },
     handle_upload_success(file_id) {
-      this.notification_form.attachment.push(file_id);
+      this.notification_form.attachments.push(file_id);
     }
   }
 }

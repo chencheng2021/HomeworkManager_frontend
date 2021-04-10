@@ -7,16 +7,19 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import {Notification} from "element-ui";
-import {clear_token} from "@/utils/authenticate_util";
+import {clear_token, obtain_token} from "@/utils/authenticate_util";
 import Router from '@/router'
 
 
 axios.defaults.headers.retry=3
 axios.defaults.headers.retryInterval=1000
+axios.defaults.headers.Authorization = authorization_token
 
 const public_route_name = ['login','register']
 
 export const base_api_path = '/api/homeworkmanager'
+
+export let authorization_token = null
 
 const http_service=axios.create(
     {
@@ -24,12 +27,16 @@ const http_service=axios.create(
         timeout:10000,
         // 对后端所有请求的访问都使用post类型
         method: 'post',
-        headers: {}
     }
 );
 
 // 请求发送
 http_service.interceptors.request.use(config=>{
+    // 获取token数据，如果有那么设置到请求头中
+    const token = obtain_token()
+    if (token !== null){
+        config.headers.Authorization = token
+    }
     return config;
 },error => {
     return Promise.reject(error)
@@ -162,12 +169,12 @@ function jump_necessary(current_route){
 
 export function set_authorization(token){
     // 为当前请求头动态增加Authorization属性
-    this.http_service.headers.Authorization = token
+    authorization_token = token
 }
 
 export function remove_authorization(){
     // 删除当前请求头的Authorization属性
-    delete  this.http_service.headers.Authorization
+    authorization_token = null
 }
 
 
