@@ -17,13 +17,24 @@ export function get_file_page(page_size,page_num){
     })
 }
 
-export function publish_file(publish_id,file){
+export function publish_file(file){
     return request({
         url: '/file/publish',
         data: {
-            publish_id: publish_id,
+            publish_id: file.publish_id,
             name: file.name,
             url: file.url,
+            type: file.publish_type
+        }
+    })
+}
+
+export function save_file(file){
+    return request({
+        url: '/file/save',
+        data:{
+            name: file.name,
+            url: file.url
         }
     })
 }

@@ -33,10 +33,15 @@ export function mock_student_contact_data(size){
             student_no : "1625111037"+i,
             name: '张大炮',
             gender: i%2===0?'男':'女',
-            contact: '183029401132',
+            contact: '18150115813',
             email: 'contact@qq.com',
             social_account: '903272721',
             class_name: '网络工程'+(i+1)+'班'
+        }
+        if (i === 0){
+            item.contact = '15108596601'
+        }else {
+            item.contact = '18716956363'
         }
         mock_data.push(item)
     }

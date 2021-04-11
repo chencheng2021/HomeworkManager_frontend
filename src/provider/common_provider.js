@@ -4,6 +4,8 @@
  * @description     一些公共方法的提供者
  */
 
+import {format_date_time} from "@/utils/date_time_util";
+
 export const base_path = '/homeworkmanager'
 
 export const unhandled = () => {}
@@ -54,4 +56,40 @@ export function decrypt(cipher){
         return cipher
     }
     return window.atob(cipher)
+}
+
+export function process_file_type(file_meta_data){
+    file_meta_data.forEach(item=>{
+        let type = item.type
+        switch (type) {
+            case 'jpg':
+            case 'png':
+            case 'jpeg':
+            case 'gif':
+            case 'bmp':
+                item.type = type+'图片文件';break
+            case 'doc':
+            case 'docx':
+                item.type = type+'文档';break
+            case 'ppt':
+            case 'pptx':
+                item.type = '幻灯片文件';break
+            case 'xls':
+            case 'xlsx':
+                item.type = type+'表格文件';break
+            case 'md':
+                item.type = 'markdown文件';break
+            default: item.type = type+'文件';break
+        }
+    })
+}
+
+export function process_date_time(meta_data){
+    meta_data.forEach(item=>{
+        if (typeof item.createDate !== 'undefined'){
+            item.createDate = format_date_time(item.createDate,true)
+        }else if (typeof item.uploadDate !== 'undefined'){
+            item.uploadDate = format_date_time(item.uploadDate,true)
+        }
+    })
 }

@@ -316,13 +316,15 @@ export default {
     handle_upload_dialog_close(file_name,file_url){
       // 文件上传成功后需要发布文件到班级中
       let file = {
+        pid: this.curr_operate_class_id,
         name: file_name,
-        url: file_url
+        url: file_url,
+        // 发布文件在班级中，文件的发布类型是1
+        type: 1,
       }
       this.upload_dialog_open_flag = false
       this.$fsloading.startLoading('正在发布文件...')
-      publish_file(this.curr_operate_class_id,file).then(() => {
-        console.log(file)
+      publish_file(file).then(() => {
         // 更新本地数据
         this.class_meta_data.forEach(data => {
           if (data.id === this.curr_operate_class_id){

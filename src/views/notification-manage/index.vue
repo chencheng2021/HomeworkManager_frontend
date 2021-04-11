@@ -43,7 +43,7 @@
       </div>
       <div style="width: 120px;height: 50px;line-height: 50px">
         <el-button plain icon="el-icon-refresh"
-                   @click="() => {this.notification_tb_render_data = this.notification_meta_data}">重新加载</el-button>
+                   @click="load_page_data">重新加载</el-button>
       </div>
     </div>
     <div>
@@ -64,8 +64,8 @@
             <el-tag type="primary" v-else>不需确认</el-tag>
           </template>
         </el-table-column>
-        <el-table-column property="total_confirm" label="已确认数据" width="100"></el-table-column>
-        <el-table-column property="create_date" label="发布日期" sortable></el-table-column>
+        <el-table-column property="totalConfirm" label="已确认数据" width="100"></el-table-column>
+        <el-table-column property="createDate" label="发布日期" sortable></el-table-column>
         <el-table-column label="操作">
           <template slot-scope="scope">
             <el-dropdown trigger="click">
@@ -77,7 +77,7 @@
                   <el-button type="text" @click="handle_attachment_dialog_open(scope.row)">附件信息</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <el-button type="text" @click="handle_members_dialog_open(scope.row.id)">通知成员</el-button>
+                  <el-button type="text" @click="handle_members_dialog_open(scope.row)">通知成员</el-button>
                 </el-dropdown-item>
                 <el-dropdown-item v-if="scope.row.type !== 2">
                   <el-button type="text" @click="handle_sms_remind(scope.row)">短信提醒</el-button>
@@ -89,12 +89,12 @@
       </el-table>
     </div>
     <div>
-      <common-pagination></common-pagination>
+      <common-pagination ref="notification_page" @load-page="refresh_page"></common-pagination>
     </div>
-    <el-dialog title="附件信息" :visible.sync="attachment_dialog_open_flag" width="500px" :before-close="handle_attachment_dialog_close" center>
+    <el-dialog title="附件信息" :visible.sync="attachment_dialog_open_flag" width="500px" @close="handle_attachment_dialog_close" center>
       <file-card :file_data_list="curr_attachment_data"></file-card>
     </el-dialog>
-    <el-dialog title="通知成员信息" :visible.sync="notification_member_dialog_open_flag" :before-close="handle_members_dialog_close">
+    <el-dialog title="通知成员信息" :visible.sync="notification_member_dialog_open_flag" @close="handle_members_dialog_close">
       <el-table :data="curr_members_info" height="500"
                 v-loading="table_loading"
                 element-loading-spinner="el-icon-loading"
@@ -102,10 +102,10 @@
                 element-loading-text="数据加载中">
         <el-table-column property="member_type" label="成员身份"></el-table-column>
         <el-table-column property="student_no" label="学号"></el-table-column>
-        <el-table-column property="member_name" label="姓名" ></el-table-column>
-        <el-table-column property="member_gender" label="性别" width="100px"></el-table-column>
-        <el-table-column property="member_class" label="班级"></el-table-column>
-        <el-table-column property="member_contact" label="联系方式"></el-table-column>
+        <el-table-column property="name" label="姓名" ></el-table-column>
+        <el-table-column property="gender" label="性别" width="100px"></el-table-column>
+        <el-table-column property="class_name" label="班级"></el-table-column>
+        <el-table-column property="contact" label="联系方式"></el-table-column>
       </el-table>
     </el-dialog>
     <el-drawer title="发布新通知" size="500px"
@@ -186,8 +186,6 @@
 <script>
 import {
   mock_class_info_data,
-  mock_notification_data,
-  mock_nt_members_info,
   mock_parent_contact_data,
   mock_student_contact_data
 } from "@/utils/data_mock_util";
@@ -198,16 +196,35 @@ import {deeply_copy_obj, form_check, form_clear} from "@/provider/common_provide
 import {filter_by_content, filter_by_title} from "@/provider/data_filter_delegator";
 import MemberTable from "@/components/member-table";
 import FileUploadBtn from "@/components/file-upload-btn";
-import {notify_member, publish_notification} from "@/api/notification_service";
+import {
+  get_notification_files,
+  get_notification_page,
+  get_notify_members,
+  notify_member,
+  publish_notification
+} from "@/api/notification_service";
+
 
 export default {
   name: "notification-manage",
   components: {FileUploadBtn, MemberTable, CommonPagination, FileCard},
+
+  created() {
+    this.$fsloading.initLoading()
+    this.load_page_data()
+  },
+
   data(){
     return {
-      notification_meta_data: mock_notification_data(),
+      // 用于保存页面加载页大小和页码以及加载的数量总数
+      loaded_page:{
+        page_size: 10,
+        page_num: 1,
+        total: 0
+      },
+      notification_meta_data:[],
       // 表格渲染数据，meta_data只用作原始数据的保存封装
-      notification_tb_render_data: deeply_copy_obj(mock_notification_data()),
+      notification_tb_render_data: [],
       attachment_dialog_open_flag: false,
       notification_member_dialog_open_flag: false,
       // 当前附件信息的数据集
@@ -281,23 +298,91 @@ export default {
     }
   },
   methods: {
+
+    refresh_page(page_size,page_num){
+      this.$fsloading.startLoading('loading....')
+      this.loaded_page.page_size = page_size
+      this.loaded_page.page_num = page_num
+      this.load_page_data()
+    },
+
+    load_page_data(){
+      // 加载分页数据
+      get_notification_page(this.loaded_page.page_size,this.loaded_page.page_num).then((data) => {
+        this.notification_meta_data = data.all_data
+        // 分页数据
+        this.notification_tb_render_data = data.pagination_data
+        this.notification_tb_render_data.forEach(item => {
+          let date_time = Number(item.createDate)
+          item.createDate = this.process_time(date_time)
+
+          // 初始化通知成员数据和附件数据，该数据第一次获取时需要访问接口
+          // 然后会保存起来，后续获取不再需要访问接口
+          item.notifyMembers = []
+          item.attachments = []
+        })
+        this.loaded_page.total = data.total
+        this.$refs.notification_page.init_total(data.total)
+        this.$fsloading.endLoading()
+      }).catch(() => {
+        this.$fsloading.endLoading()
+      })
+    },
+
+    process_time(timeMillions){
+      let date = new Date(timeMillions)
+      let hh =date.getHours() < 10? "0" + date.getHours(): date.getHours();
+      let mm =date.getMinutes() < 10? "0" + date.getMinutes(): date.getMinutes();
+      let ss =date.getSeconds() < 10? "0" + date.getSeconds(): date.getSeconds();
+      this.now_hour = hh
+      this.now_min = mm
+      this.now_sec =ss
+      let year = date.getFullYear()
+      let month = date.getMonth() + 1
+      let day = date.getDate()
+      return year + '-' + month + '-' + day + ' ' + hh + ':' + mm
+    },
+
     handle_attachment_dialog_open(item){
-      this.attachment_dialog_open_flag = true
-      this.curr_attachment_data = item.attachment
+      if (item.attachments.length > 0){
+        this.curr_attachment_data = item.attachments
+        this.attachment_dialog_open_flag = true
+      }else{
+        this.$fsloading.startLoading('正在加载附件数据...')
+        get_notification_files(item.id).then((data)=>{
+          item.attachments = data
+          this.curr_attachment_data = item.attachments
+          this.$fsloading.endLoading()
+          this.attachment_dialog_open_flag = true
+        }).catch(() => {
+          this.$fsloading.endLoading()
+        })
+      }
+
     },
     handle_attachment_dialog_close(){
       this.curr_attachment_data = []
       this.attachment_dialog_open_flag = false
     },
-    handle_members_dialog_open(id){
-      console.log(id)
-      setTimeout(() => {
-        this.table_loading = false
-        this.curr_members_info = mock_nt_members_info()
-        //TODO  数据加载完毕后将其放到store缓存中，因为已发布的通知这一信息是固定不变的
-      },1000)
+    handle_members_dialog_open(item){
+      this.load_notify_members(item)
+      this.table_loading = false
       this.notification_member_dialog_open_flag = true
     },
+
+    load_notify_members(item){
+      if (item.notifyMembers.length !== 0){
+        this.curr_members_info = item.notifyMembers
+      }else {
+        get_notify_members(item.id).then((data)=>{
+          item.notifyMembers = data
+          this.curr_members_info = item.notifyMembers
+        }).then(() => {
+          this.table_loading = false
+        })
+      }
+    },
+
     handle_members_dialog_close(){
       this.curr_members_info = []
       this.notification_member_dialog_open_flag = false
@@ -319,17 +404,30 @@ export default {
             // 封装接口数据
             let data_form = {
               notification_id: item.id,
-              member_type: item.member_type,
-              notifyInfos: []
-              // todo 这里需要获取到通知成员的数据
+              member_type: item.memberType,
+              notify_infos: []
             }
-            notify_member(data_form).then(() => {
-              done()
-              instance.confirmButtonLoading = false;
-            }).catch(() => {
-              done()
-              instance.confirmButtonLoading = false;
-            })
+
+            if (this.curr_members_info.length > 0){
+              this.process_notify_infos(data_form)
+            }else{
+              // 获取通知成员的信息，由于该方法是异步方法，所以必须要写在这里
+              get_notify_members(item.id).then((data)=>{
+                item.notifyMembers = data
+                this.curr_members_info = item.notifyMembers
+                this.process_notify_infos(data_form)
+                notify_member(data_form).then(() => {
+                  done()
+                  instance.confirmButtonLoading = false;
+                  this.table_loading = false
+                }).catch(() => {
+                  done()
+                  instance.confirmButtonLoading = false;
+                  this.table_loading = false
+                })
+              }).catch(() => {done()})
+            }
+
           }else {
             done()
           }
@@ -338,6 +436,31 @@ export default {
         this.$message.success('已成功向通知成员发送提醒短信')
       })
     },
+
+    process_notify_infos(data_form){
+      let member_type = this.curr_members_info[0].member_type
+      // 在调用方法获取通知的对象成员后，成员类型最终只有两种，即学生与家长
+      if (member_type === '学生'){
+        this.curr_members_info.forEach(cmi => {
+          let notifyInfo = {
+            publishId: cmi.student_no,
+            name: cmi.name,
+            contact: cmi.contact
+          }
+          data_form.notify_infos.push(notifyInfo)
+        })
+      }else if (member_type === '家长'){
+        this.curr_members_info.forEach(cmi => {
+          let notifyInfo = {
+            publishId: cmi.parent_id,
+            name: cmi.name,
+            contact: cmi.contact
+          }
+          data_form.notify_infos.push(notifyInfo)
+        })
+      }
+    },
+
     handle_drawer_open(){
       this.create_drawer_open_flag = true
     },
@@ -346,7 +469,7 @@ export default {
       form_clear(this,'notification_form')
       this.create_drawer_open_flag = false
     },
-    handle_selector_change(val){
+    handle_selector_change(){
       // 如果切换为短信通知时，需要变更内容最大长度
       if (this.notification_form.type === 2){
         this.content_max_len = 60
@@ -357,12 +480,6 @@ export default {
       if (this.notification_form.type === 1){
         this.file_upload_dialog_open = true
       }
-      let msg = this.nt_type_selection.find( obj => {
-        if (obj.val === val){
-          return obj
-        }
-      })
-      this.$message.success(msg.label)
     },
     handle_form_submit(){
       if (form_check(this,'notification_form')){
@@ -382,6 +499,7 @@ export default {
                 data.type = 0
               }
             }
+            data.confirmable = this.confirm_radio === 'yes'
             // 调用api
             this.$fsloading.startLoading('正在发布通知...')
             publish_notification(data).then(resp => {
@@ -465,8 +583,16 @@ export default {
         this.$message.warning('请至少选择一个通知对象！')
       }
     },
-    handle_upload_success(file_id) {
-      this.notification_form.attachments.push(file_id);
+    handle_upload_success(name,url) {
+      // 这里由于是通知创建时发布文件，因此发布的pid会在服务端生成并设置，这里只用作占位属性
+      let file = {
+        pid:0,
+        name: name,
+        url: url,
+        // 文件发布到通知中，那么发布对象类型是3
+        type: 3
+      }
+      this.notification_form.attachments.push(file);
     }
   }
 }

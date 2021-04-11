@@ -16,7 +16,7 @@ const login_path = base_path + '/login'
 const dev = 1
 const prod = 3
 
-const mode = dev
+const mode = prod
 
 
 router.beforeEach((to, from, next) => {

@@ -15,26 +15,24 @@
 <script>
 export default {
   name: "common-pagination",
-  props: {
-    // 加载分页数据的接口url
-    loaded_url: {
-      type: String,
-      default: '',
-    }
-  },
   data(){
     return {
       page_size: 10,
       current_page: 1,
-      total: 1000
+      total: 0
     }
   },
   methods: {
     handle_size_change(size){
-      this.$message.info('切换分页大小为：'+size)
+      this.page_size = size
+      this.$emit('load-page',this.page_size,this.current_page)
     },
     handle_current_change(page){
-      this.$message.info('跳转到第'+page+'页')
+      this.current_page = page
+      this.$emit('load-page',this.page_size,this.current_page)
+    },
+    init_total(total){
+      this.total = total
     }
   }
 }

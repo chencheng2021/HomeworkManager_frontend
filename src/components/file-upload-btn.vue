@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import {get_file_upload_url} from "@/provider/common_provider";
+import {deeply_copy_obj, get_file_upload_url} from "@/provider/common_provider";
 
 export default {
   name: "file-upload-btn",
@@ -41,10 +41,10 @@ export default {
       }
     },
     handle_change(){
-      this.selected = !this.selected
+      this.selected = true
     },
     handle_remove(){
-      this.selected = false
+
     },
     handle_upload_success(file_url,file){
       this.$message.success('已成功上传所选文件')
@@ -52,8 +52,7 @@ export default {
       // 这里的file_url就是服务端返回的文件url
       this.$emit('upload-success',file.name,file_url)
       // 清空已选文件缓存
-      this.file_list_upload = []
-      this.selected = false
+      this.file_list_upload = deeply_copy_obj([])
     },
     handle_upload_fail(){
       this.$message.error('文件上传失败，请重试！')

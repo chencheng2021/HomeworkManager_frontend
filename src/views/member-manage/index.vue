@@ -8,7 +8,7 @@
       <div style="width: 80%;line-height: 100px">
         <div style="float: right">
           <el-button type="primary" style="width: 140px;height: 50px;margin-right: 40px"
-                     icon="el-icon-refresh" @click="refresh_meta_data">重新加载</el-button>
+                     icon="el-icon-refresh" @click="load_page_data">重新加载</el-button>
         </div>
       </div>
     </div>
@@ -48,7 +48,7 @@
                     :publish_nt_handler="handle_dialog_open"></member-table>
     </div>
     <div>
-      <common-pagination></common-pagination>
+      <common-pagination @load-page="refresh_page" ref="member_page"></common-pagination>
     </div>
     <el-dialog :visible.sync="nt_dialog_open_flag" title="发布文本通知" width="600px" center>
         <!--  成员管理界面的通知发布仅支持发布文本通知    -->
@@ -82,15 +82,26 @@ import MemberTable from "@/components/member-table";
 import {filter_by_class, filter_by_name, filter_by_student_no} from "@/provider/data_filter_delegator";
 import {get_max_length_checker, get_string_checker} from "@/utils/checker_util";
 import {publish_notification} from "@/api/notification_service";
-import {delete_member} from "@/api/member_service";
+import {delete_member, get_member_page} from "@/api/member_service";
 
 export default {
   name: "member-manager",
   components: { MemberTable, CommonPagination},
+  created() {
+    this.$fsloading.initLoading()
+    this.load_page_data()
+  },
   data() {
     return {
-      student_info_meta_data: mock_student_contact_data(10),
-      table_render_data: deeply_copy_obj(mock_student_contact_data(10)),
+
+      loaded_page:{
+        page_size: 10,
+        page_num: 1,
+        total: 0,
+      },
+
+      student_info_meta_data: [],
+      table_render_data: [],
       // 选择显示具体班级的成员，默认显示全部班级
       member_class: 0,
       member_class_selection: [
@@ -133,6 +144,42 @@ export default {
     }
   },
   methods: {
+
+    refresh_page(page_size,page_num){
+      this.$fsloading.startLoading('loading....')
+      this.loaded_page.page_size = page_size
+      this.loaded_page.page_num = page_num
+      this.load_page_data()
+    },
+
+    load_page_data(){
+      // 加载分页数据
+      get_member_page(this.loaded_page.page_size,this.loaded_page.page_num).then((data) => {
+        this.student_info_meta_data = data.all_data
+        // 分页数据
+        this.table_render_data = data.pagination_data
+        this.loaded_page.total = data.total
+        this.$refs.member_page.init_total(data.total)
+        // 取出全部班级
+        let class_election = [
+          {label: '全部班级', val: 0}
+        ]
+        let key_temp = {}
+        const sid = this.student_info_meta_data
+        for (let i = 0;i<sid.length;i++){
+          if (!key_temp[sid[i].classId]){
+            let item = {label: sid[i].className, val: sid[i].classId}
+            class_election.push(item)
+            key_temp[sid[i].classId] = true
+          }
+        }
+        this.member_class_selection = class_election
+        this.$fsloading.endLoading()
+      }).catch(() => {
+        this.$fsloading.endLoading()
+      })
+    },
+
     handle_search(){
       if (this.search_type === 'student_no'){
         this.table_render_data = filter_by_student_no(this.student_info_meta_data,this.search_key)
@@ -186,13 +233,9 @@ export default {
     },
     handle_member_remove(member){
       this.$fsloading.startLoading('正在删除...')
-      delete_member(member.student_no).then(() => {
+      delete_member(member.studentNo).then(() => {
+        this.load_page_data()
         this.$fsloading.endLoading()
-        // 移除本地数据
-        this.student_info_meta_data = this.student_info_meta_data.filter( item => {
-          return item.student_no !== member.student_no
-        })
-        this.table_render_data = deeply_copy_obj(this.student_info_meta_data)
         this.$message.success('已成功将成员移出班级')
       }).catch(() => {
         this.$fsloading.endLoading()

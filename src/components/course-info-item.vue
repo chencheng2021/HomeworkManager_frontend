@@ -178,7 +178,8 @@ export default {
       homework_rules:{
         content:[get_string_checker('请输入通知内容')],
         confirmable: [{required:true}]
-      }
+      },
+      selected_course: null
     }
   },
   methods:{
@@ -194,6 +195,8 @@ export default {
     },
     open_homework_dialog(item){
       if (typeof item.course_election_data !== "undefined" && item.course_election_data.length > 0){
+        // 保存选中项，需要跨方法进行参数传递
+        this.selected_course = item
         this.homework_dialog_open = true
       }else{
         this.$message.info("该课程没有选课数据，无法发布作业")
@@ -202,22 +205,23 @@ export default {
     },
     open_file_upload(item){
       if (typeof item.course_election_data !== "undefined" && item.course_election_data.length > 0){
+        this.selected_course = item
         this.file_upload_dialog_open = true
       }else {
-        this.$message.info("该课程没有选课数据，无法发布作业")
+        this.$message.info("该课程没有选课数据，无法发布文件")
       }
     },
     handle_homework_publish(){
       this.$refs.homework_publish_form.validate(valid=>{
         if (valid){
           let data = deeply_copy_obj(this.homework_publish_form)
-          data.confirmable = data.confirmable !== '不需确认';
-          this.homework_publish_handler(this.homework_publish_form)
+          // 将文字转为为 0 或 1,0代表不需确认，1代表需要确认
+          this.homework_publish_handler(data,this.selected_course)
         }
       })
     },
-    handle_file_upload(data){
-      this.file_publish_handler(data)
+    handle_file_upload(name,url){
+      this.file_publish_handler(name,url,this.selected_course)
     },
     cancel_publish_homework(){
       this.$refs.homework_publish_form.resetFields()

@@ -66,6 +66,7 @@ import FileCard from "@/components/file-card";
 import {create_course, delete_course, get_course_list, update_course} from "@/api/course_service";
 import {notification_create_form} from "@/api/data_forms";
 import {publish_notification} from "@/api/notification_service";
+import {publish_file} from "@/api/file_service";
 
 export default {
   name: "course-manage",
@@ -185,17 +186,17 @@ export default {
     },
 
     // 发布作业，等于发布一个标题为作业通知的文本通知
-    publish_homework(item){
+    publish_homework(item,selected_course){
       let data_form = notification_create_form()
       data_form.attachments = []
       data_form.contact_data_list = []
       data_form.type = 0
       data_form.content = item.content
       data_form.title = item.title
-      data_form.confirmable = item.confirmable
       data_form.member_type = 'course'
+      data_form.confirmable = data_form.confirmable !== '不需确认'
       let contact_item = {
-        publish_id: item.id,
+        publish_id: selected_course.id,
         name: '',
         contact: ''
       }
@@ -211,10 +212,26 @@ export default {
     },
 
     // 发布文件
-    publish_file(item){
-      this.course_meta_data.course_files.push(item)
-      this.$refs.course_info. cancel_upload_file()
-      this.$message.success('已成功发布文件')
+    publish_file(name,url,selected_course){
+      let file = {
+        publish_id: selected_course.id,
+        name: name,
+        url: url,
+        publish_type: 2
+      }
+      this.$fsloading.startLoading('正在发布文件...')
+      publish_file(file).then(() => {
+        this.course_meta_data.forEach(course => {
+          if (course.id === selected_course.id){
+            course.course_files.push(file)
+          }
+        })
+        this.$fsloading.endLoading()
+        this.$refs.course_info. cancel_upload_file()
+        this.$message.success('已成功发布文件')
+      }).catch(() => {
+        this.$fsloading.endLoading()
+      })
     }
   }
 }

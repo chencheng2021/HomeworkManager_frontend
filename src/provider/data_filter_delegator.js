@@ -26,8 +26,11 @@ export function filter_by_content(origin,condition){
 
 export function filter_by_student_no(origin,condition){
     let collect = []
-    origin.filter( item => {
-        if (item.student_no.indexOf(condition) !== -1){
+    origin.forEach( item => {
+        console.log(item)
+        if (typeof item.student_no !== 'undefined' && String(item.student_no).indexOf(condition) !== -1){
+            collect.push(item)
+        }else if (typeof item.studentNo !== 'undefined' && String(item.studentNo).indexOf(condition) !== -1){
             collect.push(item)
         }
     } )
@@ -46,8 +49,10 @@ export function filter_by_name(origin,condition){
 
 export function filter_by_class(origin,condition){
     let collect = []
-    origin.filter( item => {
-        if (item.class_name.indexOf(condition) !== -1){
+    origin.forEach( item => {
+        if (typeof item.class_name !== 'undefined' && item.class_name.indexOf(condition) !== -1){
+            collect.push(item)
+        }else if (typeof item.className !== 'undefined' && item.className.indexOf(condition) !== -1){
             collect.push(item)
         }
     } )
