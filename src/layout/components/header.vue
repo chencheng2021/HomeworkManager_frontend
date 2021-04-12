@@ -139,8 +139,8 @@ export default {
       if (phone !== ''){
         if (phone !== this.user_form.contact){
           if ((/^1[3456789]\d{9}$/.test(phone))){
-            send(phone,"updatePhone").then( () => {
-              this.$message.success('已成功向手机号'+this.update_phone_form.phone.phone+'发送短信')
+            send(Number(0),phone,"updatePhone").then( () => {
+              this.$message.success('已成功向手机号'+this.update_phone_form.phone+'发送短信')
             }).catch( () => {} )
           }else {
             this.$message.warning('请输入正确的手机号码')
@@ -162,7 +162,7 @@ export default {
               // 更新当前绑定的渲染数据
               this.user_form.contact = phone
               // 更新store缓存
-              this.$store.dispatch('update_contact', phone)
+              this.$store.dispatch('UpdateContact', phone)
               this.update_phone_dialog_open = false
               this.$message.success('已成功修改绑定手机为'+phone)
             }).catch(() => {})

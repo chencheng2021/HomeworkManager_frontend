@@ -35,6 +35,7 @@ export function update_pass(update_pass_form){
     return request({
         url: '/user/update/pass',
         data: {
+            teacher_no: Number(update_pass_form.teacher_no),
             phone: update_pass_form.phone,
             password: update_pass_form.password,
             verify_code: update_pass_form.verify_code

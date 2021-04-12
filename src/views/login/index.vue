@@ -153,6 +153,7 @@ export default {
     handle_pass_dialog_close(){
       this.$refs.reset_pass.clear_form()
       this.showResetPassDialog = false
+      this.$message.success('已成功修改登录密码')
     }
   }
 

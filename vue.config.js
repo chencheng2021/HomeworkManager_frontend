@@ -8,8 +8,8 @@ module.exports={
                 changeOrigin:true
             },
             '/api/homeworkmanager':{
-                target:'http://192.168.31.91:9090/',
-                //target: 'http://192.168.1.131:9090/',
+                //target:'http://192.168.31.91:9090/',
+                target: 'http://192.168.1.131:9090/',
                 changeOrigin:true
             },
         }

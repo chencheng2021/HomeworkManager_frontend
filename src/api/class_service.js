@@ -52,3 +52,9 @@ export function delete_class(class_id){
         }
     })
 }
+
+export function get_all_classes(){
+    return request({
+        url: '/class/all',
+    })
+}

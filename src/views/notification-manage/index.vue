@@ -94,19 +94,35 @@
     <el-dialog title="附件信息" :visible.sync="attachment_dialog_open_flag" width="500px" @close="handle_attachment_dialog_close" center>
       <file-card :file_data_list="curr_attachment_data"></file-card>
     </el-dialog>
-    <el-dialog title="通知成员信息" :visible.sync="notification_member_dialog_open_flag" @close="handle_members_dialog_close">
-      <el-table :data="curr_members_info" height="500"
-                v-loading="table_loading"
-                element-loading-spinner="el-icon-loading"
-                element-loading-background="rgba(0, 0, 0, 0.8)"
-                element-loading-text="数据加载中">
-        <el-table-column property="member_type" label="成员身份"></el-table-column>
-        <el-table-column property="student_no" label="学号"></el-table-column>
-        <el-table-column property="name" label="姓名" ></el-table-column>
-        <el-table-column property="gender" label="性别" width="100px"></el-table-column>
-        <el-table-column property="class_name" label="班级"></el-table-column>
-        <el-table-column property="contact" label="联系方式"></el-table-column>
-      </el-table>
+    <el-dialog title="通知成员信息" :visible.sync="notification_member_dialog_open_flag"
+               @close="handle_members_dialog_close">
+      <div style="height: 520px">
+        <el-table :data="curr_members_info" height="500"
+                  v-loading="table_loading"
+                  element-loading-spinner="el-icon-loading"
+                  element-loading-background="rgba(0, 0, 0, 0.8)"
+                  element-loading-text="数据加载中">
+          <el-table-column property="member_type" label="成员身份"></el-table-column>
+          <el-table-column label="学号">
+            <template slot-scope="scope">
+              <label v-if="scope.row.student_no !== 0">{{scope.row.student_no}}</label>
+              <label v-else>———</label>
+            </template>
+          </el-table-column>
+          <el-table-column property="name" label="姓名" ></el-table-column>
+          <el-table-column label="性别" width="100px">
+            <template slot-scope="scope">
+              <label v-if="scope.row.gender === 1">男</label>
+              <label v-else>女</label>
+            </template>
+          </el-table-column>
+          <el-table-column property="class_name" label="班级"></el-table-column>
+          <el-table-column property="contact" label="联系方式"></el-table-column>
+        </el-table>
+      </div>
+      <div style="height: 30px;line-height: 30px;margin-left: 30px">
+        <label>总人数: {{curr_members_info.length}}</label>
+      </div>
     </el-dialog>
     <el-drawer title="发布新通知" size="500px"
                style="font-size: 20px"
@@ -166,7 +182,7 @@
       <member-table
           ref="selection_table"
           :member_type="notification_form.member_type"
-          :selection_mode="true" :table_render_data="student_table_render_data"
+          :selection_mode="true" :table_render_data="notify_members_render_data"
           :selection_change_handler="handle_nt_obj_selection"></member-table>
       <div style="margin-top: 30px;text-align: center">
         <el-button type="success" style="width: 120px" round @click="cache_nt_obj_id">确认</el-button>
@@ -203,6 +219,8 @@ import {
   notify_member,
   publish_notification
 } from "@/api/notification_service";
+import {get_all_parents, get_all_students} from "@/api/member_service";
+import {get_all_classes} from "@/api/class_service";
 
 
 export default {
@@ -285,6 +303,7 @@ export default {
       class_table_render_data:mock_class_info_data(3),
       // 选择通知学生时的表格渲染数据
       student_table_render_data: mock_student_contact_data(56),
+      notify_members_render_data: [],
       // 选择通知家长时的表格渲染数据
       parent_table_render_data: mock_parent_contact_data(mock_student_contact_data(56)),
       nt_obj_dialog_open_flag: false,
@@ -531,15 +550,39 @@ export default {
     handle_obj_type_change(){
       this.handle_dialog_open()
     },
+    // 需要进行通过对象数据的获取
     handle_dialog_open(){
       // 计算对话框标题
       let nt_obj_type = this.nt_obj_type_selection.find( item => {
         return item.val === this.notification_form.member_type
       })
       this.nt_obj_dialog_title = '可'+nt_obj_type.label+'列表'
-      // 每次打开都需要先清除该中间数组的缓存值，防止多选累加
-      this.temp_selected_pid = []
-      this.nt_obj_dialog_open_flag = true
+      switch (this.notification_form.member_type) {
+        case "student":
+          // 加载该教师管理的所有学生的数据
+          get_all_students().then((data) => {
+            console.log(data)
+            this.notify_members_render_data = data
+            // 每次打开都需要先清除该中间数组的缓存值，防止多选累加
+            this.temp_selected_pid = []
+            this.nt_obj_dialog_open_flag = true
+          }).catch(() =>{});break
+        case "parent":
+          // 获取所有家长的数据
+          get_all_parents().then((data) => {
+            console.log(data)
+            this.notify_members_render_data = data
+            this.nt_obj_dialog_open_flag = true
+          }).catch(() => {});break
+        case "class":
+          // 获取所有班级的数据
+          get_all_classes().then((data) => {
+            console.log(data)
+            this.notify_members_render_data = data
+            this.nt_obj_dialog_open_flag = true
+          }).catch(() => {});break
+        default:break
+      }
     },
     // 关闭选择通知对象的对话框
     handle_dialog_close(){
@@ -547,9 +590,12 @@ export default {
       this.$refs.selection_table.clear_selection()
       this.nt_obj_dialog_open_flag = false
     },
+
+    // 通知成员的选择列表的数据保存
     handle_nt_obj_selection(val){
       this.nt_obj_list = val
     },
+
     cache_nt_obj_id(){
       if (this.nt_obj_list.length !== 0){
         this.nt_obj_list.forEach( item => {
@@ -562,6 +608,7 @@ export default {
             name: '',
             contact: ''
           }
+          // 不同的通知成员对应的id属性不一样
           if (type === 'student'){
             id = item.student_no
             name = item.name

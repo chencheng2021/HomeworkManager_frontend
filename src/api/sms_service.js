@@ -8,10 +8,11 @@
 import request from '@/provider/http_base'
 
 
-export function send(phone,type){
+export function send(teacher_no,phone,type){
     return request({
         url: '/sms/send',
         data: {
+            teacher_no: teacher_no,
             phone: phone,
             type: type
         }

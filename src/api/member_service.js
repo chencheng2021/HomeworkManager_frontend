@@ -26,3 +26,15 @@ export function delete_member(member_id){
         }
     })
 }
+
+export function get_all_students(){
+    return request({
+        url: '/member/all'
+    })
+}
+
+export function get_all_parents(){
+    return request({
+        url: '/member/parents'
+    })
+}

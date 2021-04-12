@@ -6,13 +6,31 @@
               @selection-change="selection_change_handler">
       <!-- 开启表格的selection模式，提供多选操作 -->
       <el-table-column type="selection" width="45"></el-table-column>
+      <el-table-column property="student_name" label="学生姓名" v-if="member_type === 'parent'"></el-table-column>
+      <el-table-column property="parent_name" label="家长姓名" v-if="member_type === 'parent'"></el-table-column>
+      <el-table-column label="关系" v-if="member_type === 'parent'">
+        <template slot-scope="scope">
+          <label v-if="scope.row.gender === 1">父亲</label>
+          <label v-else>母亲</label>
+        </template>
+      </el-table-column>
+      <el-table-column property="contact" label="联系方式" v-if="member_type === 'parent' "></el-table-column>
+
       <el-table-column property="class_code" label="班级编号" v-if="member_type === 'class'"></el-table-column>
       <el-table-column property="class_name" label="班级名称" v-if="member_type === 'class'"></el-table-column>
+      <el-table-column property="total_student_num" label="班级总人数" v-if="member_type === 'class'"></el-table-column>
+
       <el-table-column property="student_no" label="学号" width="200px" v-if="member_type === 'student'"></el-table-column>
-      <el-table-column property="name" label="姓名" width="150px" v-if="member_type === 'student' || member_type === 'parent'"></el-table-column>
-      <el-table-column property="gender" label="性别" width="50px" v-if="member_type === 'student' || member_type === 'parent'"></el-table-column>
+      <el-table-column property="name" label="姓名" width="150px" v-if="member_type === 'student' "></el-table-column>
+      <el-table-column label="性别" width="50px" v-if="member_type === 'student'">
+        <template slot-scope="scope">
+          <label v-if="scope.row.gender === 1">男</label>
+          <label v-else>女</label>
+        </template>
+      </el-table-column>
       <el-table-column property="class_name" label="班级" v-if="member_type === 'student'"></el-table-column>
-      <el-table-column property="contact" label="联系方式" v-if="member_type === 'student' || member_type === 'parent'"></el-table-column>
+      <el-table-column property="contact" label="联系方式" v-if="member_type === 'student' "></el-table-column>
+
     </el-table>
 
     <el-table :data="table_render_data" stripe v-else

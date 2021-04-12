@@ -215,11 +215,11 @@ export default {
     handle_nt_publish(){
       if (form_check(this,'text_notification_form')){
         let data = deeply_copy_obj(this.text_notification_form)
-        data.contact_data_list = {
-          publish_id: this.selected_student.student_no,
+        data.contact_data_list = [{
+          publish_id: this.selected_student.studentNo,
           name: '',
           contact: ''
-        }
+        }]
         this.$fsloading.startLoading('正在发布消息...')
         publish_notification(data).then(() => {
           this.$fsloading.endLoading()

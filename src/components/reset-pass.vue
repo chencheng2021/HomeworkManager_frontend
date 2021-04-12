@@ -52,7 +52,7 @@ export default {
       let phone = this.reset_pass_form.phone
       if (phone !== ''){
         if ((/^1[3456789]\d{9}$/.test(phone))){
-          send(phone,"updatePass").then( () => {
+          send(Number(this.teacher_no),phone,"updatePass").then( () => {
             this.$message.success('已成功向手机号'+this.reset_pass_form.phone+'发送短信')
           }).catch( () => {} )
         }else {
