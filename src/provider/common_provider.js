@@ -41,7 +41,7 @@ export function deeply_copy_obj(obj){
 }
 
 export function get_file_upload_url(){
-    return 'http://192.168.31.91:9090/api/homeworkmanager/file/upload'
+    return 'http://47.96.232.239:9090/api/homeworkmanager/file/upload'
 }
 
 export function encrypt(origin){

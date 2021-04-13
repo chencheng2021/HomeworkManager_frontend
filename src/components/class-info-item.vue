@@ -40,11 +40,7 @@
                     <el-button type="text" @click="file_publish_handler(item)">发布文件</el-button>
                   </el-dropdown-item>
                   <el-dropdown-item>
-                    <el-popconfirm title="确认删除该班级吗?" confirm-button-text="确认"
-                                   @confirm="check_before_delete(item)"
-                                   icon="el-icon-info" icon-color="red">
-                      <el-button slot="reference" type="text" >删除班级</el-button>
-                    </el-popconfirm>
+                    <el-button type="text" @click="check_before_delete(item)">删除班级</el-button>
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
@@ -144,7 +140,14 @@ export default {
       if (item.total_student_num > 0){
         this.$message.warning('已导入学生的班级目前不支持删除!')
       }else {
-        this.dismiss_btn_handler(item)
+        this.$confirm("确认删除该班级吗？","删除提示",{
+          type: "error",
+          confirmButtonText: "确认删除",
+          cancelButtonText: "取消删除",
+          center: true
+        }).then(() => {
+          this.dismiss_btn_handler(item)
+        }).catch(() => {})
       }
     },
     on_contact_click(item){

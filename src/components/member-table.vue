@@ -40,7 +40,12 @@
       <el-table-column type="index" label="序号"></el-table-column>
       <el-table-column property="studentNo" label="学号" width="200px"></el-table-column>
       <el-table-column property="name" label="姓名" width="150px"></el-table-column>
-      <el-table-column property="gender" label="性别" width="50px"></el-table-column>
+      <el-table-column label="性别" width="50px">
+        <template slot-scope="scope">
+          <label v-if="scope.row.gender === 1">男</label>
+          <label v-else>女</label>
+        </template>
+      </el-table-column>
       <el-table-column property="className" label="班级"></el-table-column>
       <el-table-column property="contact" label="联系方式"></el-table-column>
       <el-table-column property="email" label="邮箱"></el-table-column>

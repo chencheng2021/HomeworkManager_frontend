@@ -18,10 +18,11 @@ export function get_member_page(page_size,page_num){
     })
 }
 
-export function delete_member(member_id){
+export function delete_member(class_id,member_id){
     return request({
         url: '/member/delete',
         data: {
+            class_id: class_id,
             student_no: member_id
         }
     })

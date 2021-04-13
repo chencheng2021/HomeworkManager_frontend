@@ -73,7 +73,7 @@ export default {
     load_page_data(){
       // 加载分页数据
       get_file_page(this.loaded_page.page_size,this.loaded_page.page_num).then((data) => {
-        this.file_meta_data = data.all_data
+        this.file_meta_data = data.all_data !== null ? data.all_data : []
         process_file_type(this.file_meta_data)
         // 分页数据
         this.file_table_render_data = data.pagination_data

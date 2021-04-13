@@ -45,3 +45,21 @@ export function delete_course(course_id){
         }
     })
 }
+
+export function get_selectable_course(student_no){
+    return request({
+        url: '/course/selectable',
+        data: {
+            student_no: student_no
+        }
+    })
+}
+
+export function selecting_course(selected_records){
+    return request({
+        url: '/course/selecting',
+        data: {
+            courseSelectList: selected_records
+        }
+    })
+}

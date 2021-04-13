@@ -49,8 +49,8 @@
     <div>
       <el-table :data="notification_tb_render_data" stripe  >
         <el-table-column label="序号" type="index"></el-table-column>
-        <el-table-column property="title" label="通知标题" width="180"></el-table-column>
-        <el-table-column property="content" label="通知内容" width="500"></el-table-column>
+        <el-table-column property="title" label="通知标题" width="200"></el-table-column>
+        <el-table-column property="content" label="通知内容" width="450"></el-table-column>
         <el-table-column property="type" label="通知类型" width="120">
           <template slot-scope="scope" >
             <el-tag type="info" v-if="scope.row.type === 0">文本通知</el-tag>
@@ -328,7 +328,7 @@ export default {
     load_page_data(){
       // 加载分页数据
       get_notification_page(this.loaded_page.page_size,this.loaded_page.page_num).then((data) => {
-        this.notification_meta_data = data.all_data
+        this.notification_meta_data = data.all_data !== null? data.all_data : []
         // 分页数据
         this.notification_tb_render_data = data.pagination_data
         this.notification_tb_render_data.forEach(item => {

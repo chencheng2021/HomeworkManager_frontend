@@ -40,11 +40,7 @@
                       <el-button type="text" @click="open_file_upload(item)">发布文件</el-button>
                     </el-dropdown-item>
                     <el-dropdown-item>
-                      <el-popconfirm confirm-button-text="确定" title="是否确认删除该课程?"
-                                     @confirm="check_before_delete(item)"
-                                     icon="el-icon-info" icon-color="red">
-                        <el-button slot="reference" type="text" >删除课程</el-button>
-                      </el-popconfirm>
+                      <el-button type="text" @click="check_before_delete(item)">删除课程</el-button>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
@@ -185,7 +181,14 @@ export default {
   methods:{
     check_before_delete(item){
       if (typeof item.course_election_data !== "undefined" && item.course_election_data.length === 0){
-        this.delete_btn_handler(item)
+        this.$confirm("确认删除该课程吗?","删除提示",{
+          type: "error",
+          confirmButtonText: "确认删除",
+          cancelButtonText: "取消删除",
+          center: true,
+        }).then(() => {
+          this.delete_btn_handler(item)
+        })
       }else{
         this.$message.warning('该课程已有学生选课，无法删除')
       }

@@ -7,6 +7,7 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
 import {Notification} from "element-ui";
+import {MessageBox} from "element-ui";
 import {clear_token, obtain_token} from "@/utils/authenticate_util";
 import Router from '@/router'
 
@@ -59,7 +60,15 @@ http_service.interceptors.response.use(
         // 不为200时，服务端服务出错或失败
         if (error_code !== 200){
             const error_desc = data.msg
-            Message.error(error_desc)
+            if (error_code === 608){
+                MessageBox.alert(error_desc,"导入失败",{
+                    type: "error",
+                    confirmButtonText: "知道了",
+                    center: true
+                }).then(() => {})
+            }else{
+                Message.error(error_desc)
+            }
             // 特殊错误码处理
             if (error_code === 403 || error_code === 405){
                 // 403代表用户账号已被禁止，405代表用户登录已过期

@@ -233,7 +233,7 @@ export default {
     },
     handle_member_remove(member){
       this.$fsloading.startLoading('正在删除...')
-      delete_member(member.studentNo).then(() => {
+      delete_member(member.classId,member.studentNo).then(() => {
         this.load_page_data()
         this.$fsloading.endLoading()
         this.$message.success('已成功将成员移出班级')

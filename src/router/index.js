@@ -24,6 +24,36 @@ const system_router = [
         hidden: true
     },
     {
+        path: '*',
+        redirect: '/homeworkmanager/error/404'
+    },
+    {
+        path: '/homeworkmanager/error/404',
+        meta: {title: '404 - NotFound'},
+        component: () => import('@/views/error/404'),
+        hidden: true
+    },
+    {
+        path: '/homeworkmanager/course/election',
+        meta: {title: '学生选课'},
+        component:() => import('@/views/template/course-election'),
+        hidden: true
+    },
+    {
+        path: '/homeworkmanager/error',
+        component: layout,
+        redirect: '/homeworkmanager/error/500',
+        children: [
+            {
+                path: '500',
+                name: '500',
+                meta:{title: '500 - InternalError',},
+                component: () => import('@/views/error/500')
+            }
+        ],
+        hidden: true
+    },
+    {
         path: '/homeworkmanager',
         component: layout,
         redirect: '/homeworkmanager/home',
@@ -110,7 +140,7 @@ const system_router = [
                 component: () => import('@/views/file-manager')
             }
         ]
-    }
+    },
 ]
 
 export default new VueRouter({
