@@ -45,7 +45,12 @@
         <el-table-column property="student_no" label="学号"></el-table-column>
         <el-table-column property="class_name" label="班级名称"></el-table-column>
         <el-table-column property="student_name" label="姓名" ></el-table-column>
-        <el-table-column property="gender" label="性别" width="100px"></el-table-column>
+        <el-table-column label="性别" width="100px">
+          <template slot-scope="scope">
+            <label v-if="scope.row.gender === 1">男</label>
+            <label v-else>女</label>
+          </template>
+        </el-table-column>
         <el-table-column property="contact" label="联系方式"></el-table-column>
       </el-table>
       <div style="margin-top: 20px;width: 100%;text-align: right;font-size: 16px;font-weight: bold">
@@ -163,9 +168,6 @@ export default {
     handle_course_election_info(item){
       this.course_election_tb_render_data = item.course_election_data
       // 匹配性别描述
-      this.course_election_tb_render_data.forEach(data=>{
-        data.gender = data.gender == 1 ? '男' : '女'
-      })
       this.info_dialog_open_flag = true
     },
     close_drawer(){

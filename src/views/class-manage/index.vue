@@ -45,7 +45,12 @@
       <el-table :data="members_tb_render_data" height="500" v-if="show_student_info">
         <el-table-column property="student_no" label="学号"></el-table-column>
         <el-table-column property="name" label="姓名" ></el-table-column>
-        <el-table-column property="gender" label="性别" width="100px"></el-table-column>
+        <el-table-column  label="性别" width="100px">
+          <template slot-scope="scope" v-if="show_student_info">
+            <label v-if="scope.row.gender === 1">男</label>
+            <label v-else>女</label>
+          </template>
+        </el-table-column>
         <el-table-column property="contact" label="联系方式"></el-table-column>
         <el-table-column property="email" label="邮箱"></el-table-column>
         <el-table-column property="social_account" label="QQ号"></el-table-column>
@@ -221,15 +226,8 @@ export default {
     handle_members_info(item){
       // 绑定学生数据
       this.members_tb_render_data = item.member_data
-      // 将性别的0和1替换为文字
-      this.members_tb_render_data.forEach(member => {
-        member.gender = member.gender == 1 ? '男生' : '女生'
-      })
       // 绑定学生家长数据
       this.student_parent_info = item.member_parent_data
-      this.student_parent_info.forEach(p=>{
-        p.gender = p.gender == 1 ? '父亲' : '母亲'
-      })
       this.info_dialog_open_flag = true
     },
 
